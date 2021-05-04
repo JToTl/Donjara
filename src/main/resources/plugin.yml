@@ -1,0 +1,8 @@
+name: Donjara
+version: ${project.version}
+main: ltotj.minecraft.donjara.Main
+api-version: 1.16
+commands:
+  donjara:
+    description:
+    usage:  "/donjara help でコマンドを確認"
