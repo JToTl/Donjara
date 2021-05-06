@@ -1,6 +1,5 @@
 package ltotj.minecraft.donjara.game;
 
-import ltotj.minecraft.donjara.GlobalClass;
 import ltotj.minecraft.donjara.InventoryGUI;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -87,6 +86,7 @@ public class PlayerGUI {
     public void preLi_zhi(PlayerHand playerHand){//handは9*9 canDisうんぬんは9
         int count=0;
         List<Integer> canDisTiles=playerHand.li_zhi();
+        System.out.println(canDisTiles);
         for(int i=0;i<9;i++){
             for(int j=0;j<9;j++){
                 if(playerHand.hand[i][j]==1){
@@ -101,7 +101,7 @@ public class PlayerGUI {
         if(canDisTiles.contains(playerHand.drawnTile/10))inv.enchantItem(53);
     }
 
-    private int headPosition(int i){//0-左 1-正面 2-右 どの向きなのかはゲームの方のクラスで(相手の場所-自分の場所-1)%3で出せる
+    private int headPosition(int i){//0-左 1-正面 2-右 どの向きなのかはゲームの方のクラスで（3*自分＋相手＋３）%4で出せる
         int r=0;
         switch (i){
             case 0:
@@ -150,23 +150,6 @@ public class PlayerGUI {
                 break;
         }
     }
-
-//    public void putOthersTile(int i){//0-左 1-正面 2-右 どの向きなのかはゲームの方のクラスで(相手の場所-自分の場所-1)%3で出せる
-//        switch (i){
-//            case 0:
-//                inv.setItem(27, inv.tileList.getMaterial(-1),"???");
-//                inv.setItem(36,inv.tileList.getMaterial(-1),"???");
-//                break;
-//            case 1:
-//                inv.setItem(2, inv.tileList.getMaterial(-1),"???");
-//                inv.setItem(3,inv.tileList.getMaterial(-1),"???");
-//                break;
-//            case 2:
-//                inv.setItem(33, inv.tileList.getMaterial(-1),"???");
-//                inv.setItem(24,inv.tileList.getMaterial(-1),"???");
-//                break;
-//        }
-//    }
 
     public void setOthersDisTile(int rowAndColumn,int direction){
         switch (direction){

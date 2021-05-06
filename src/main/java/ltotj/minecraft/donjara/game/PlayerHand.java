@@ -1,8 +1,6 @@
 package ltotj.minecraft.donjara.game;
 
 
-import javafx.util.Pair;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,7 +98,6 @@ public class PlayerHand {
         if (rowAndColumn == 100) {
             almighty = 0;
         } else {
-            System.out.println(rowAndColumn);
             hand[rowAndColumn / 10][rowAndColumn - ((rowAndColumn / 10) * 10)] = 0;
         }
     }
@@ -141,17 +138,19 @@ public class PlayerHand {
         return judge==0||(judge==2&&almighty==1);
     }
 
-    public List<Integer> li_zhi(){//捨てることができる列を1として返す canLi_zhiを通っていること前提
+    public List<Integer> li_zhi(){//捨てることができる列を返す canLi_zhiを通っていること前提
         int judge=0;
         List<Integer> ret=new ArrayList<>();
+        addTile(drawnTile);
         for(int i=0;i<9;i++){
             judge=judge+rowSum(i)%3%2;
-            if(rowSum(i)%3!=0)ret.add(i);
+            if(rowSum(i)%3%2!=0)ret.add(i);
         }
         if(judge==0){
             for(int i=0;i<9;i++)ret.add(i);
             ret.add(100);
         }
+        removeTile(drawnTile);
         return ret;
     }
 

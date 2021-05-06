@@ -1,14 +1,10 @@
 package ltotj.minecraft.donjara.game;
 
 import dev.dbassett.skullcreator.SkullCreator;
-import javafx.beans.property.Property;
 import ltotj.minecraft.donjara.InventoryGUI;
-import org.bukkit.Material;
+import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
-
-import java.lang.reflect.Field;
-import java.util.UUID;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class ResultGUI {
 
@@ -64,7 +60,11 @@ public class ResultGUI {
                 str="eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGQ3OTEwZTEwMzM0Zjg5MGE2MjU0ODNhYzBjODI0YjVlNGExYTRiMTVhOTU2MzI3YTNlM2FlNDU4ZDllYTQifX19";
                 break;
         }
-        return SkullCreator.itemFromBase64(str);
+        ItemStack item=SkullCreator.itemFromBase64(str);
+        ItemMeta meta=item.getItemMeta();
+        meta.displayName(Component.text("§4点数"));
+        item.setItemMeta(meta);
+        return item;
     }
 
 }
