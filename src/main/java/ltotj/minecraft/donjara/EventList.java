@@ -43,8 +43,8 @@ public class EventList implements Listener {
                         playerData.li_zhi = true;
                     } else {//リーチのキャンセル処理
                         playerData.playerGUI.setLi_zhiButton();
-                        playerData.playerGUI.setDrawnTile(playerData.playerHand.drawnTile);
                         playerData.playerGUI.setTiles(donjara.playerList.get(0).playerHand.hand);
+                        playerData.playerGUI.setDrawnTile(playerData.playerHand.drawnTile);
                         playerData.preLi_zhi=false;
                     }
                 } else {

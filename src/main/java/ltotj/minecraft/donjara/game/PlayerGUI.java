@@ -156,17 +156,17 @@ public class PlayerGUI {
             case 0:
                 inv.cloneItem(37,28);
                 inv.cloneItem(28,19);
-                inv.setTile(19,rowAndColumn);
+                inv.setTile(19,rowAndColumn,"§c捨て牌");
                 break;
             case 1:
                 inv.cloneItem(11,12);
                 inv.cloneItem(12,13);
-                inv.setTile(13,rowAndColumn);
+                inv.setTile(13,rowAndColumn,"§c捨て牌");
                 break;
             case 2:
                 inv.cloneItem(23,32);
                 inv.cloneItem(32,41);
-                inv.setTile(41,rowAndColumn);
+                inv.setTile(41,rowAndColumn,"§c捨て牌");
         }
     }
 

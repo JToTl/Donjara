@@ -347,7 +347,13 @@ public class Donjara extends Thread{
         for(int i=0;i<maxSeat;i++)query.append(playerList.get(i).point).append(",");
         if(maxSeat==3)query.append("null").append(",");
         query.append(");");
-        if(GlobalClass.mySQLManager.execute(query.toString())||sum!=24000*maxSeat)GlobalClass.playable=false;
+        int finalSum = sum;
+        Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {
+            @Override
+            public void run() {
+                if(GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*maxSeat)GlobalClass.playable=false;
+            }
+        });
         GlobalClass.DonjaraTable.remove(masterPlayer.getUniqueId());
     }
 

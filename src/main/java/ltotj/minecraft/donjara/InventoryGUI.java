@@ -50,6 +50,14 @@ public class InventoryGUI {
         setTile(slot,rowAndColumn/10,rowAndColumn-((rowAndColumn/10)*10));
     }
 
+    public void setTile(int slot,int rowAndColumn,String name){
+        ItemStack tile=createTile(rowAndColumn/10,rowAndColumn-((rowAndColumn/10)*10));
+        ItemMeta meta=tile.getItemMeta();
+        meta.displayName(Component.text(name));
+        tile.setItemMeta(meta);
+        setItem(slot,tile);
+    }
+
     public void removeItem(int slot){
         inv.setItem(slot,new ItemStack(Material.STONE,0));
     }
