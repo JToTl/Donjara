@@ -2,7 +2,14 @@ name: Donjara
 version: ${project.version}
 main: ltotj.minecraft.donjara.Main
 api-version: 1.16
+depend: [Vault]
 commands:
   donjara:
     description:
     usage:  "/donjara help でコマンドを確認"
+
+permissions:
+  donjara.op:
+    default: op
+  donjara.player:
+    default: true
