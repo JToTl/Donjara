@@ -23,18 +23,25 @@ public class Commands implements CommandExecutor {
             Player player=(Player)sender;
             switch (args[0]){//一般ぴーぽー用
                 case "start":
-                    if(GlobalClass.playable){
+                    if(args.length<2){
+                        player.sendMessage("コマンドが不正です");
+                        break;
+                    }
+                    else if(!GlobalClass.playable){
                         player.sendMessage("プラグイン[Donjara]はただいま停止中です");
+                        break;
                     }
                     else if(isCurrentPlayer(player)){
                         player.sendMessage(Component.text("あなたは既にゲームに参加しています！/donjara open でゲーム画面を開きましょう！"));
-                        return true;
+                        break;
                     }
                     else if(!args[1].matches("[+-]?\\d*(\\.\\d+)?")){
                         player.sendMessage("コマンドが不正です");
+                        break;
                     }
                     else if(Integer.parseInt(args[1])<3||Integer.parseInt(args[1])>4){
                         player.sendMessage("募集可能人数は三〜四人です");
+                        break;
                     }
                     else if(args.length>2){
                         if(args[2].matches("[+-]?\\d*(\\.\\d+)?")){
@@ -82,8 +89,12 @@ public class Commands implements CommandExecutor {
                 case "list":
                     player.sendMessage("参加可能な卓は以下の通りです");
                     for(Donjara donjara:GlobalClass.DonjaraTable.values()){
-                        player.sendMessage(donjara.masterPlayer.getName()+"の卓|募集人数："+donjara.maxSeat+"人｜必要金額："+donjara.rate*24000+"$");
+                        player.sendMessage(donjara.masterPlayer.getName()+"の卓|募集人数："+donjara.maxSeat+"人｜必要金額：§4"+donjara.rate*24000+"$");
                     }
+                    break;
+                case "rule":
+                    player.openInventory(GlobalClass.gameRuleGUI.yakuGUIs.get(0).inv);
+                    break;
             }
             if(player.hasPermission("donjara.op")){
                 switch (args[0]){//権限持ち用
@@ -92,7 +103,7 @@ public class Commands implements CommandExecutor {
                         break;
                     case "switch":
                         GlobalClass.playable=!GlobalClass.playable;
-                        if(GlobalClass.playable)player.sendMessage("新規ゲームを開催不可能にしました");
+                        if(!GlobalClass.playable)player.sendMessage("新規ゲームを開催不可能にしました");
                         else player.sendMessage("新規ゲームを開催可能にしました");
                         break;
                     case "test":

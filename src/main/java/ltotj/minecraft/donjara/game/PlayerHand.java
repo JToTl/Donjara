@@ -5,28 +5,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerHand {
-    //0-ピッケル 石-鉄-ダイヤ
-    //1-オノ 木-石-ダイヤ
-    //2-剣 木-鉄-ダイヤ
-    //3-防具 皮-チェイン-ダイヤ
-    //4-鉱石 エメラルド-赤石-ネザー金
-    //5-木ブロック オーク-白樺-ネザーのやつ
-    //6-食糧 生豚-生牛-金りんご
-    //7-かまど系 溶鉱炉-かまど-薫製
-    //8-スポーンエッグ ゾンビ-クリーパー-スケルトン-ネザー３種
+    //0 剣 ダイヤ４ー石４ー金
+    //1 ピッケル ダイヤ4ー木４ー金
+    //2 オノ　ダイヤ４ー鉄４ー金
+    //3　鉱石　ダイヤ４ー水晶４ー金
+    //4　防具　ダイヤ４ーチェーン４ー金
+    //5　食糧　ポテト３ーりんご３ー金りんご３
+    //6　原木　オーク３ー白樺３ーネザーのやつ３
+    //7　羊毛　桃3ー白3ー緑3（ライム）
+    //8 スポーンエッグ　ゾンビ２ークリーパー２ースケルトン２ーガストーブレイズーウィザスケ
 
-    //役
-    //かまどで焼こう
-    //ダイヤ
-    //ツールのみ
-    //モンスターハント
-    //ネザー
-    //いつもの三人
-    //いざ採掘
-    //いざ伐採
-    //３色
-    //２色
-    //１色
+    /*役
+    三色
+    二色
+    一色
+    三種類
+    ハイランダー
+    トリニティ
+    饅頭
+    いざ採掘
+    いざ伐採
+    ネザー
+    モンスターハント
+    ツールオンリー
+    ブロックオンリー
+    ダイヤまみれ
+    ゴールデン
+    */
 
     public int[][] hand=new int[9][9];
     public int almighty,drawnTile=0;
@@ -34,6 +39,11 @@ public class PlayerHand {
     public void reset(){
         hand=new int[9][9];
         almighty=0;
+    }
+
+    private int isHaving(int i){//0で0を、それ以外で1を返す
+        if(i==0)return 0;
+        return 1;
     }
 
     public void addTile(int row,int column){
@@ -131,11 +141,18 @@ public class PlayerHand {
     public boolean canTsumo(){
         int judge=0;
         addTile(drawnTile);
-        for(int i=0;i<9;i++){
-            judge+=rowSum(i)%3;
+        if(almighty==0)
+            for(int i=0;i<9;i++) {
+                judge += rowSum(i) % 3;
+            }
+        else {
+            for (int i = 0; i < 9; i++) {
+                judge += isHaving(rowSum(i) % 3);
+            }
+            judge-=1;
         }
         removeTile(drawnTile);
-        return judge==0||(judge==2&&almighty==1);
+        return judge==0;
     }
 
     public List<Integer> li_zhi(){//捨てることができる列を返す canLi_zhiを通っていること前提
@@ -154,63 +171,35 @@ public class PlayerHand {
         return ret;
     }
 
-    public List<Integer> winningTile() {//聴牌前提 アガれる列を返す
-        List<Integer> list = new ArrayList<>();
-        for (int i = 0; i < 9; i++) {
-            if (rowSum(i) % 3 != 0) {
-                list.add(i);
-            }
-        }
-        return list;
-    }
-
     //役判定は手が出来上がっていること前提
-
-    public int point(){
-        int r=0;
-        if(isOnlyTools())r=r+3000;
-        if(isMonsterHunt())r=r+5000;
-        if(isNether())r=r+24000;
-        if(isDiamond())r=r+10000;
-        if(isTrinity())r=r+5000;
-        if(isMining())r=r+3000;
-        if(isLogging())r=r+3000;
-        if(isSmelting())r=r+2000;
-        switch (colors()){
-            case 3:
-                r=r+20000;
-                break;
-            case 2:
-                r=r+6000;
-                break;
-            case 1:
-                r=r+1000;
-                break;
-        }
-        return r;
-    }
 
     public List<Yaku> yaku(){
         List<Yaku> list=new ArrayList<>();
-        if(isOnlyTools())list.add(new Yaku("§l§8ツールだらけ",7,300));
-        if(isMonsterHunt())list.add(new Yaku("§l§8モンスターハント",5,5000));
-        if(isNether())list.add(new Yaku("§l§8ネザー！",2,24000));
-        if(isDiamond())list.add(new Yaku("§l§8ダイヤラッシュ",1,10000));
-        if(isTrinity())list.add(new Yaku("§l§8おなじみの３人（？）",0,5000));
-        if(isMining())list.add(new Yaku("§l§8いざ採掘！",4,3000));
-        if(isLogging())list.add(new Yaku("§l§8いざ伐採！",3,3000));
-        if(isSmelting())list.add(new Yaku("§l§8かまどで焼きましょう",6,2000));
+        addTile(drawnTile);
         switch (colors()){
             case 3:
-                list.add(new Yaku("§l§8三色", 8, 1000));
+                list.add(new Yaku("§l§d三色", 0, 1000));
                 break;
             case 2:
-                list.add(new Yaku("§l§8二色",9,6000));
+                list.add(new Yaku("§l§d二色",1,6000));
                 break;
             case 1:
-                list.add(new Yaku("§l§8一色",10,20000));
+                list.add(new Yaku("§l§d一色",2,20000));
                 break;
         }
+        if(isThreeTypes())list.add(new Yaku("§l§d三種類",3,6000));
+        if(isHighlander())list.add(new Yaku("§l§dハイランダー",4,3000));
+        if(isTrinity())list.add(new Yaku("§l§dいつもの３人(?)",5,5000));
+        if(isMan10())list.add(new Yaku("§l§dおまんじゅう！",6,4000));
+        if(isMining())list.add(new Yaku("§l§dいざ採掘",7,3000));
+        if(isLogging())list.add(new Yaku("§l§dいざ伐採",8,3000));
+        if(isNether())list.add(new Yaku("§l§dさらなる深みへ",9,20000));
+        if(isMonsterHunt())list.add(new Yaku("§l§dモンスターハント",10,7000));
+        if(isOnlyTools())list.add(new Yaku("§l§d道具の準備は万端",11,5000));
+        if(isOnlyBlocks())list.add(new Yaku("§l§d立方体",12,5000));
+        if(isDiamond())list.add(new Yaku("§l§dダイヤまみれ",13,6000));
+        if(golden()!=0)list.add(new Yaku("§l§dゴールデン§g"+golden(),14,2000*golden()));
+        removeTile(drawnTile);
         return list;
     }
 
@@ -220,39 +209,65 @@ public class PlayerHand {
         return judge;
     }
 
-    private boolean isOnlyTools(){//剣も含む
-        return rowSum(0) + rowSum(1) + rowSum(2) >= 8;
+    private boolean isThreeTypes() {
+        int judge=0;
+        for(int i=0;i<5;i++)judge+=isHaving(rowPartSum(i,0,4))+isHaving(rowPartSum(i,4,8));
+        for(int i=5;i<8;i++)judge+=isHaving(rowPartSum(i,0,3))+isHaving(rowPartSum(i,3,6))+isHaving(rowPartSum(i,6,9));
+        return judge==3;
     }
 
-    private boolean isMonsterHunt(){
-        return rowSum(2)*rowSum(3)*rowSum(8)>=18;
-    }
-
-    private boolean isNether(){
-        return rowPartSum(4,6,9)+rowPartSum(5,6,9)+rowPartSum(8,6,9)>=8;
-    }
-
-    private boolean isDiamond(){
-        return rowPartSum(0,6,9)+rowPartSum(1,6,9)+rowPartSum(2,6,9)+rowPartSum(3,6,9)>=8;
+    private boolean isHighlander(){
+        int judge=almighty+isHaving(rowPartSum(8,0,2))+isHaving(rowPartSum(8,2,4))+isHaving(rowPartSum(8,4,6))+rowPartSum(8,6,9);
+        for(int i=0;i<5;i++)judge+=isHaving(rowPartSum(i,0,4))+isHaving(rowPartSum(i,4,8))+hand[i][8];
+        for(int i=5;i<8;i++)judge+=isHaving(rowPartSum(i,0,3))+isHaving(rowPartSum(i,3,6))+isHaving(rowPartSum(i,6,9));
+        return judge==9;
     }
 
     private boolean isTrinity(){
-        return Math.min(rowPartSum(8,0,2),1)+Math.min(rowPartSum(8,2,4),1)+Math.min(rowPartSum(8,4,6),1)+almighty>=3;
+        if(rowSum(8)%3==0)return isHaving(rowPartSum(8,0,2))+isHaving(rowPartSum(8,2,4))+isHaving(rowPartSum(8,4,6))==3;
+        return isHaving(rowPartSum(8,0,2))+isHaving(rowPartSum(8,2,4))+isHaving(rowPartSum(8,4,6))+almighty>=3;
+    }
+
+    private boolean isMan10(){
+        if(rowSum(7)%3==0)return isHaving(rowPartSum(7,0,3))+isHaving(rowPartSum(7,3,6))+isHaving(rowPartSum(7,6,9))==3;
+        return isHaving(rowPartSum(7,0,3))+isHaving(rowPartSum(7,3,6))+isHaving(rowPartSum(7,6,9))+almighty>=3;
     }
 
     private boolean isMining(){
-        return rowSum(0)+rowSum(4)>=5;
+        return rowSum(1)*rowSum(3)!=0;
     }
 
     private boolean isLogging(){
-        return rowSum(1)+rowSum(5)>=5;
+        return rowSum(2)*rowSum(6)!=0;
     }
 
-    private boolean isSmelting(){
-        return (rowPartSum(1,0,3)+rowPartSum(2,0,3)+rowSum(5))//燃料
-                *(rowSum(4)*rowPartSum(7,0,6)+rowSum(6)*rowPartSum(7,6,9)+(rowPartSum(0,3,6)+rowPartSum(2,3,6))*rowPartSum(7,0,3)+Math.max(0,rowSum(5)+(rowPartSum(1,0,3)+rowPartSum(2,0,3))%5-3)*rowPartSum(7,3,6))>0;
+    private boolean isNether(){
+        return rowPartSum(3,6,9)+rowPartSum(6,6,9)+rowPartSum(8,6,9)>=8;
     }
 
+    private boolean isMonsterHunt(){
+        return (rowSum(0)+rowSum(2))*rowSum(4)*rowSum(8)!=0;
+    }
+
+    private boolean isOnlyTools(){
+        return rowSum(0)+rowSum(1)+rowSum(2)>=8;
+    }
+
+    private boolean isOnlyBlocks(){
+        return rowSum(3)+rowSum(6)+rowSum(7)>=8;
+    }
+
+    private boolean isDiamond(){
+        return rowPartSum(0,0,3)+rowPartSum(1,0,3)+rowPartSum(2,0,3)+rowPartSum(3,0,3)+rowPartSum(4,0,3)>=8;
+    }
+
+    private int golden() {
+        int judge=rowPartSum(5,6,9);
+        for(int i=0;i<5;i++){
+            judge+=hand[i][8];
+        }
+        return judge;
+    }
 
 
 }

@@ -53,7 +53,7 @@ public class PlayerGUI {
     }
 
     public void setGlassPane(){
-        inv.setItem(8,new ItemStack(Material.WHITE_STAINED_GLASS_PANE,1));
+        inv.setItem(8,Material.BLUE_STAINED_GLASS_PANE,"§l§a役を確認する");
         inv.setItem(44,new ItemStack(Material.WHITE_STAINED_GLASS_PANE,1));
         for(int i=0;i<5;i++){
             inv.setItem(9*i+7,new ItemStack(Material.WHITE_STAINED_GLASS_PANE,1));
@@ -156,17 +156,17 @@ public class PlayerGUI {
             case 0:
                 inv.cloneItem(37,28);
                 inv.cloneItem(28,19);
-                inv.setTile(19,rowAndColumn,"§c捨て牌");
+                inv.setTile(19,rowAndColumn,"§c捨て牌","§eクリックで詳細を表示");
                 break;
             case 1:
                 inv.cloneItem(11,12);
                 inv.cloneItem(12,13);
-                inv.setTile(13,rowAndColumn,"§c捨て牌");
+                inv.setTile(13,rowAndColumn,"§c捨て牌","§eクリックで詳細を表示");
                 break;
             case 2:
                 inv.cloneItem(23,32);
                 inv.cloneItem(32,41);
-                inv.setTile(41,rowAndColumn,"§c捨て牌");
+                inv.setTile(41,rowAndColumn,"§c捨て牌","§eクリックで詳細を表示");
         }
     }
 
@@ -197,7 +197,7 @@ public class PlayerGUI {
             inv.removeItem(30);
             return;
         }
-        inv.setItem(30,rest,Material.QUARTZ_BLOCK,"§l山","§l§6§l残り"+rest+"枚");
+        inv.setItem(30,rest-1,Material.QUARTZ_BLOCK,"§l山","§l§6§l残り"+(rest-1)+"枚");
     }
 
     public void setClock(int time){//秒

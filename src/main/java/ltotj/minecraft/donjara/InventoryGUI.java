@@ -50,10 +50,11 @@ public class InventoryGUI {
         setTile(slot,rowAndColumn/10,rowAndColumn-((rowAndColumn/10)*10));
     }
 
-    public void setTile(int slot,int rowAndColumn,String name){
+    public void setTile(int slot,int rowAndColumn,String name,String... lore){
         ItemStack tile=createTile(rowAndColumn/10,rowAndColumn-((rowAndColumn/10)*10));
         ItemMeta meta=tile.getItemMeta();
         meta.displayName(Component.text(name));
+        meta.lore(listToComponent(lore));
         tile.setItemMeta(meta);
         setItem(slot,tile);
     }

@@ -22,11 +22,11 @@ public class EventList implements Listener {
 
     @EventHandler
     public void ClickGUI(InventoryClickEvent e) {
+        Player player=(Player)e.getWhoClicked();
         if (e.getCurrentItem() != null &&(e.getView().title().equals(Component.text("DonjaraTable"))||e.getView().title().equals(Component.text("DiscardedTiles"))||e.getView().title().equals(Component.text("Result")))) {
             ItemStack clickedItem = e.getCurrentItem();
             e.setCancelled(true);
             if (GlobalClass.currentPlayer.containsKey(e.getWhoClicked().getUniqueId())) {
-                Player player = (Player) e.getWhoClicked();
                 Donjara donjara = GlobalClass.getTable(player.getUniqueId());
                 Donjara.PlayerData playerData = donjara.getPlData(player);
                 int slot = e.getSlot();
@@ -48,25 +48,27 @@ public class EventList implements Listener {
                         playerData.preLi_zhi=false;
                     }
                 } else {
-                    switch (slot) {
-                        case 18:
-                            player.openInventory(donjara.disTilesGUIS.get(donjara.seatList.get(player.getUniqueId())).inv.inv);
-                            break;
-                        case 19:
-                        case 28:
-                        case 37:
-                            donjara.disTilesGUIS.get(donjara.playerList.get((Math.min(1 % 4, donjara.seatList.size()))).disGUINum()).inv.openInventory(player);
-                            break;
-                        case 11:
-                        case 12:
-                        case 13:
-                            donjara.disTilesGUIS.get(donjara.playerList.get((Math.min(2 % 4, donjara.seatList.size()))).disGUINum()).inv.openInventory(player);
-                            break;
-                        case 23:
-                        case 32:
-                        case 41:
-                            donjara.disTilesGUIS.get(donjara.playerList.get((Math.min(3 % 4, donjara.seatList.size()))).disGUINum()).inv.openInventory(player);
-                            break;
+                    if(e.getView().title().equals(Component.text("DonjaraTable"))){
+                        switch (slot) {
+                            case 18:
+                                player.openInventory(donjara.disTilesGUIS.get(donjara.seatList.get(player.getUniqueId())).inv.inv);
+                                break;
+                            case 19:
+                            case 28:
+                            case 37:
+                                donjara.disTilesGUIS.get(donjara.playerList.get((Math.min(1 % 4, donjara.seatList.size()))).disGUINum()).inv.openInventory(player);
+                                break;
+                            case 11:
+                            case 12:
+                            case 13:
+                                donjara.disTilesGUIS.get(donjara.playerList.get((Math.min(2 % 4, donjara.seatList.size()))).disGUINum()).inv.openInventory(player);
+                                break;
+                            case 23:
+                            case 32:
+                            case 41:
+                                donjara.disTilesGUIS.get(donjara.playerList.get((Math.min(3 % 4, donjara.seatList.size()))).disGUINum()).inv.openInventory(player);
+                                break;
+                        }
                     }
                     if (donjara.isTurnPl(player.getUniqueId()) && Math.abs(slot - 49) < 5) {
                         playerData.discardedTileNum = slot % 44;
@@ -86,11 +88,24 @@ public class EventList implements Listener {
                         playerData.li_zhi = false;
                     } else if (matchName(clickedItem, "§l§eスキップ")) {
                         playerData.playerGUI.removeButton();
-                        donjara.canRon += 1;
+                        donjara.canRonPAc += 1;
                     }
+                    else if(matchName(clickedItem,"§l§a役を確認する"))player.openInventory(GlobalClass.gameRuleGUI.yakuGUIs.get(0).inv);
                 }
-
             }
+        }
+        else if(e.getCurrentItem() != null &&e.getView().title().equals(Component.text("役"))){
+            ItemStack clickedItem = e.getCurrentItem();
+            e.setCancelled(true);
+            if(matchName(clickedItem,"§c役一覧に戻る"))player.openInventory(GlobalClass.gameRuleGUI.yakuGUIs.get(0).inv);
+        }
+        else if(e.getCurrentItem() != null &&e.getView().title().equals(Component.text("役一覧"))){
+            ItemStack clickedItem = e.getCurrentItem();
+            e.setCancelled(true);
+            if(e.getSlot()>=9&&e.getSlot()<=23){
+                player.openInventory(GlobalClass.gameRuleGUI.yakuGUIs.get(e.getSlot()-8).inv);
+            }
+            else if(matchName(clickedItem,"§c参加中のゲームに戻る")&&GlobalClass.currentPlayer.containsKey(player.getUniqueId()))player.openInventory(GlobalClass.getTable(player.getUniqueId()).getPlData(player).playerGUI.inv.inv);
         }
     }
 }

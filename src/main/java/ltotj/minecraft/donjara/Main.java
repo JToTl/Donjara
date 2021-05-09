@@ -24,14 +24,4 @@ public final class Main extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
     }
-
-
-//    private void test(){
-//        ItemStack item=new ItemStack(Material.STONE,1);
-//        ItemMeta meta=item.getItemMeta();
-//        meta.lore(mutableListOf(Component.text("§b§l必要数:${data.value.amount}").asComponent(),
-//                Component.text("§a§l締切日:${sdf.format(data.value.datetime)}").asComponent(),
-//                Component.text("§6§l報酬:${data.value.price}").asComponent(),
-//                Component.text("§d§l受け取り:${if (data.value.boolean == 1){"可能"}else{"まだ"}}")))
-//    }
 }

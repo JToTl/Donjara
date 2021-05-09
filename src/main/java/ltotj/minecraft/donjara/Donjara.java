@@ -245,6 +245,7 @@ public class Donjara extends Thread{
                 }
             }
         }
+        if(count!=9)resultGUI.inv.setTile(53,100);
         for(int i=0;i<list.size();i++){
             threadSleep(1000);
             resultGUI.setYaku(20+(i/5)*9+i%5,list.get(i).number,list.get(i).name,list.get(i).point);
@@ -325,7 +326,7 @@ public class Donjara extends Thread{
     private void endGame(){//お金の処理を入れるならここに書くべき 点数合算にズレがあったら記録するように
         int sum=0;
         endTime=new Date();
-        StringBuilder query= new StringBuilder("INSERT INTO gameLog(startTime,endTime,P1,P2,P3,P4,Rate,P1Point,P2Point,P3Point,P4Point) VALUES(" + getDateForMySQL(startTime) + "," + getDateForMySQL(endTime) + ",");
+        StringBuilder query= new StringBuilder("INSERT INTO gameLog(startTime,endTime,P1,P2,P3,P4,Rate,P1Point,P2Point,P3Point,P4Point) VALUES('" + getDateForMySQL(startTime) + "','" + getDateForMySQL(endTime)+"'");
         for(int i=0;i<maxSeat;i++){
             PlayerData playerData=playerList.get(i);
             Player player=Bukkit.getPlayer(playerData.playerUUID);
@@ -340,18 +341,18 @@ public class Donjara extends Thread{
                 });
             }
             GlobalClass.currentPlayer.remove(playerData.playerUUID);
-            query.append(playerData.name).append(",");
+            query.append(",'").append(playerData.name).append("'");
         }
-        if(maxSeat==3)query.append("null").append(",");
-        query.append(rate).append(",");
-        for(int i=0;i<maxSeat;i++)query.append(playerList.get(i).point).append(",");
-        if(maxSeat==3)query.append("null").append(",");
+        if(maxSeat==3)query.append(",null");
+        query.append(",").append(rate);
+        for(int i=0;i<maxSeat;i++)query.append(",").append(playerList.get(i).point);
+        if(maxSeat==3)query.append(",0");
         query.append(");");
         int finalSum = sum;
         Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {
             @Override
             public void run() {
-                if(GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*maxSeat)GlobalClass.playable=false;
+                if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*maxSeat)GlobalClass.playable=false;
             }
         });
         GlobalClass.DonjaraTable.remove(masterPlayer.getUniqueId());
@@ -364,6 +365,7 @@ public class Donjara extends Thread{
         playerList.get(sender).point-=point;
         for(int i=0;i<maxSeat;i++){
             if(i!=receiver&&i!=sender)continue;
+            threadSleep(500);
             removePlayerPoint(i);
             threadSleep(500);
             setPlayerPoint(i);
@@ -388,7 +390,7 @@ public class Donjara extends Thread{
             if(playerData.name==null)continue;//デバッグ用
             message[i+1]=playerData.name+"："+playerData.point+"点";
         }
-        message[maxSeat]="=======================";
+        message[maxSeat+1]="=======================";
         for(PlayerData playerData:playerList.values()){
             Player player=Bukkit.getPlayer(playerData.playerUUID);
             if(player==null)continue;
@@ -407,7 +409,7 @@ public class Donjara extends Thread{
                 playerList.get(i).point-=Math.min(point/3,playerList.get(i).point);
                 if(playerList.get(i).point==0)r=true;
             }
-            playerList.get(receiver).point+=point;
+            playerList.get(receiver).point+=insPoint;
         }
         else{
             int childPoint=(point/(100*(2*maxSeat+1)))*200;//子から引かれる予定の点
@@ -424,8 +426,10 @@ public class Donjara extends Thread{
                     if(playerList.get(i).point==0)r=true;
                 }
             }
+            playerList.get(receiver).point+=insPoint;
         }
         for(int i=0;i<maxSeat;i++){
+            threadSleep(500);
             removePlayerPoint(i);
             threadSleep(500);
             setPlayerPoint(i);
@@ -438,7 +442,7 @@ public class Donjara extends Thread{
     @Override
     public void run() {
         for (int i = 120; i > 0 && playerList.size() < maxSeat; i--) {
-            if (i % 20 == 0) Bukkit.getServer().broadcast(Component.text(masterPlayer.getName() + "が一点あたり" + rate + "$で" + maxSeat + "人ドンジャラを募集中・・・残り" + i + "秒  必要金額："+rate*24000+"$"), Server.BROADCAST_CHANNEL_USERS);
+            if (i % 20 == 0) Bukkit.getServer().broadcast(Component.text("§l§w"+masterPlayer.getName() + "§l§aが一点あたり§r§e" + rate + "$§l§aで§e" + maxSeat + "§a人ドンジャラを募集中・・・残り§c" + i + "§a秒  §4必要金額："+rate*24000+"$"), Server.BROADCAST_CHANNEL_USERS);
             threadSleep(1000);
         }
         if (playerList.size() != maxSeat) {
