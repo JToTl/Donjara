@@ -50,6 +50,10 @@ public class Commands implements CommandExecutor {
                                 player.sendMessage("賭け金は"+GlobalClass.config.getDouble("minRate")+"以上"+GlobalClass.config.getDouble("maxRate")+"以下の額で設定してください");
                                 break;
                             }
+                            else if(GlobalClass.vaultManager.getBalance(player.getUniqueId())<Integer.parseInt(args[1])*24000) {
+                                player.sendMessage("所持金が不足しています");
+                                break;
+                            }
                             GlobalClass.DonjaraTable.put(player.getUniqueId(),new Donjara(player,Integer.parseInt(args[1])));
                             GlobalClass.DonjaraTable.get(player.getUniqueId()).rate=rate;
                             GlobalClass.DonjaraTable.get(player.getUniqueId()).betting=true;
@@ -93,31 +97,25 @@ public class Commands implements CommandExecutor {
                     }
                     break;
                 case "rule":
-                    player.openInventory(GlobalClass.gameRuleGUI.yakuGUIs.get(0).inv);
+                    player.openInventory(GlobalClass.gameRuleGUI.ruleGUI.inv);
+                    break;
+                case "help":
+                    player.sendMessage(new String[]{"/donjara start <募集人数:3~4> (一点当たりの金額:"+GlobalClass.config.getDouble("minRate")+"以上"+GlobalClass.config.getDouble("maxRate")+"以下) |卓を作成します"
+                            ,"/donjara join <募集者のID> |卓に参加します"
+                            ,"/donjara open |参加中のゲーム画面を開きます"
+                            ,"/donjara list |参加可能な卓を表示します"
+                            ,"/donjara rule |牌・役の一覧を表示します"});
                     break;
             }
             if(player.hasPermission("donjara.op")){
                 switch (args[0]){//権限持ち用
-                    case "configreload":
+                    case "reloadconfig":
                         GlobalClass.config.load();
                         break;
                     case "switch":
                         GlobalClass.playable=!GlobalClass.playable;
                         if(!GlobalClass.playable)player.sendMessage("新規ゲームを開催不可能にしました");
                         else player.sendMessage("新規ゲームを開催可能にしました");
-                        break;
-                    case "test":
-                        GlobalClass.DonjaraTable.get(Bukkit.getPlayer(args[1]).getUniqueId()).addPlayer(player);
-                        GlobalClass.DonjaraTable.get(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
-                        GlobalClass.DonjaraTable.get(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
-                        break;
-                    case "test2":
-                        GlobalClass.DonjaraTable.get(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
-                        GlobalClass.DonjaraTable.get(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
-                        GlobalClass.DonjaraTable.get(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
-                        break;
-                    case "dp":
-                        GlobalClass.DonjaraTable.get(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
                         break;
                 }
             }

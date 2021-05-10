@@ -53,7 +53,7 @@ public class PlayerGUI {
     }
 
     public void setGlassPane(){
-        inv.setItem(8,Material.BLUE_STAINED_GLASS_PANE,"§l§a役を確認する");
+        inv.setItem(8,Material.BLUE_STAINED_GLASS_PANE,"§l§a牌・役を確認する");
         inv.setItem(44,new ItemStack(Material.WHITE_STAINED_GLASS_PANE,1));
         for(int i=0;i<5;i++){
             inv.setItem(9*i+7,new ItemStack(Material.WHITE_STAINED_GLASS_PANE,1));
@@ -65,7 +65,7 @@ public class PlayerGUI {
     }
 
     public void setRonButton(){
-        inv.setItem(35,Material.END_CRYSTAL,"§l§aロン");
+        inv.setItem(35,Material.END_CRYSTAL,"§l§aドンジャラ！（ロン）");
         inv.setItem(26,Material.RED_STAINED_GLASS_PANE,"§l§eスキップ");
     }
 
@@ -73,7 +73,7 @@ public class PlayerGUI {
         inv.setItem(26,Material.END_CRYSTAL,"§l§bリーチ");
     }
 
-    public void setTsumoButton(){inv.setItem(35,Material.END_CRYSTAL,"§l§cツモ");}
+    public void setTsumoButton(){inv.setItem(35,Material.END_CRYSTAL,"§l§cドンジャラ！（ツモ）");}
 
     public void setCancelButton(){inv.setItem(26,Material.RED_STAINED_GLASS_PANE,"§l§dキャンセル");}
 

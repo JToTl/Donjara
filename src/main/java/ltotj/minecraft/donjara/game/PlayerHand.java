@@ -128,7 +128,7 @@ public class PlayerHand {
         int judge=0;
         addTile(drawnTile);
         for(int i=0;i<9;i++)judge=judge+rowSum(i)%3;
-        if(judge>5){
+        if(judge>=5){
             removeTile(drawnTile);
             return false;
         }
@@ -178,40 +178,40 @@ public class PlayerHand {
         addTile(drawnTile);
         switch (colors()){
             case 3:
-                list.add(new Yaku("§l§d三色", 0, 1000));
+                list.add(new Yaku("§l§d役：三色", 0, 1000));
                 break;
             case 2:
-                list.add(new Yaku("§l§d二色",1,6000));
+                list.add(new Yaku("§l§d役：二色",1,6000));
                 break;
             case 1:
-                list.add(new Yaku("§l§d一色",2,20000));
+                list.add(new Yaku("§l§5役：一色",2,20000));
                 break;
         }
-        if(isThreeTypes())list.add(new Yaku("§l§d三種類",3,6000));
-        if(isHighlander())list.add(new Yaku("§l§dハイランダー",4,3000));
-        if(isTrinity())list.add(new Yaku("§l§dいつもの３人(?)",5,5000));
-        if(isMan10())list.add(new Yaku("§l§dおまんじゅう！",6,4000));
-        if(isMining())list.add(new Yaku("§l§dいざ採掘",7,3000));
-        if(isLogging())list.add(new Yaku("§l§dいざ伐採",8,3000));
-        if(isNether())list.add(new Yaku("§l§dさらなる深みへ",9,20000));
-        if(isMonsterHunt())list.add(new Yaku("§l§dモンスターハント",10,7000));
-        if(isOnlyTools())list.add(new Yaku("§l§d道具の準備は万端",11,5000));
-        if(isOnlyBlocks())list.add(new Yaku("§l§d立方体",12,5000));
-        if(isDiamond())list.add(new Yaku("§l§dダイヤまみれ",13,6000));
-        if(golden()!=0)list.add(new Yaku("§l§dゴールデン§g"+golden(),14,2000*golden()));
+        if(isThreeTypes())list.add(new Yaku("§l§d役：三種類",3,6000));
+        if(isHighlander())list.add(new Yaku("§l§d役：ハイランダー",4,3000));
+        if(isTrinity())list.add(new Yaku("§l§d役：いつもの３人(?)",5,5000));
+        if(isMan10())list.add(new Yaku("§l§d役：おまんじゅう！",6,4000));
+        if(isMining())list.add(new Yaku("§l§d役：いざ採掘",7,3000));
+        if(isLogging())list.add(new Yaku("§l§d役：いざ伐採",8,3000));
+        if(isNether())list.add(new Yaku("§l§5役：さらなる深みへ",9,20000));
+        if(isMonsterHunt())list.add(new Yaku("§l§d役：モンスターハント",10,7000));
+        if(isOnlyTools())list.add(new Yaku("§l§d役：道具の準備は万端",11,5000));
+        if(isOnlyBlocks())list.add(new Yaku("§l§d役：立方体",12,5000));
+        if(isDiamond())list.add(new Yaku("§l§5役：ダイヤまみれ",13,12000));
+        if(golden()!=0)list.add(new Yaku("§l§d役：ゴールデン§g"+golden(),14,2000*golden()));
         removeTile(drawnTile);
         return list;
     }
 
     private int colors(){
         int judge=0;
-        for(int i=0;i<9;i++)if(rowSum(i)!=0)judge=judge+1;
+        for(int i=0;i<9;i++)judge+=isHaving(rowSum(i));
         return judge;
     }
 
     private boolean isThreeTypes() {
-        int judge=0;
-        for(int i=0;i<5;i++)judge+=isHaving(rowPartSum(i,0,4))+isHaving(rowPartSum(i,4,8));
+        int judge=isHaving(rowPartSum(8,0,2))+isHaving(rowPartSum(8,2,4))+isHaving(rowPartSum(8,4,6))+rowPartSum(8,6,9);
+        for(int i=0;i<5;i++)judge+=isHaving(rowPartSum(i,0,4))+isHaving(rowPartSum(i,4,8))+hand[i][8];
         for(int i=5;i<8;i++)judge+=isHaving(rowPartSum(i,0,3))+isHaving(rowPartSum(i,3,6))+isHaving(rowPartSum(i,6,9));
         return judge==3;
     }
