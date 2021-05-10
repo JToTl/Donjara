@@ -50,7 +50,7 @@ public class Commands implements CommandExecutor {
                                 player.sendMessage("賭け金は"+GlobalClass.config.getDouble("minRate")+"以上"+GlobalClass.config.getDouble("maxRate")+"以下の額で設定してください");
                                 break;
                             }
-                            else if(GlobalClass.vaultManager.getBalance(player.getUniqueId())<Integer.parseInt(args[1])*24000) {
+                            else if(GlobalClass.vaultManager.getBalance(player.getUniqueId())<rate*24000) {
                                 player.sendMessage("所持金が不足しています");
                                 break;
                             }

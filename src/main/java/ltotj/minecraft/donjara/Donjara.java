@@ -380,6 +380,7 @@ public class Donjara extends Thread{
             if(i==turnSeat)playerList.get(i).playerGUI.setLi_zhiStick();
             else playerList.get(i).playerGUI.setOthersLi_zhi((3*i+turnSeat+3)%4);
         }
+        playSoundAlPl(Sound.BLOCK_BEACON_AMBIENT);
     }
 
     private void sendResult(){
