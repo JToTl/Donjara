@@ -23,6 +23,7 @@ public class Config {
         try {
             return config.getString(string);
         }catch(Exception exception){
+            System.out.println("コンフィグから"+string+"の値を取るのに失敗しました");
             return "";
         }
     }
@@ -30,6 +31,7 @@ public class Config {
         try{
             return config.getInt(string);
         }catch(Exception exception){
+            System.out.println("コンフィグから"+string+"の値を取るのに失敗しました");
             return 0;
         }
     }
@@ -37,6 +39,7 @@ public class Config {
         try{
             return config.getDouble(string);
         }catch(Exception exception){
+            System.out.println("コンフィグから"+string+"の値を取るのに失敗しました");
             return 0;
         }
     }
