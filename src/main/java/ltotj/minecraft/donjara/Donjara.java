@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Donjara extends Thread{
 
@@ -348,10 +349,12 @@ public class Donjara extends Thread{
     }
 
     private void endGame(){//お金の処理を入れるならここに書くべき 点数合算にズレがあったら記録するように
+        GlobalClass.DonjaraTable.remove(masterPlayer.getUniqueId());
+        threadSleep(1000);
         int sum=0;
         endTime=new Date();
         StringBuilder query= new StringBuilder("INSERT INTO gameLog(startTime,endTime,P1,P2,P3,P4,Rate,P1Point,P2Point,P3Point,P4Point) VALUES('" + getDateForMySQL(startTime) + "','" + getDateForMySQL(endTime)+"'");
-        for(int i=0;i<maxSeat;i++){
+        for(int i=0;i<playerList.size();i++){
             PlayerData playerData=playerList.get(i);
             Player player=Bukkit.getPlayer(playerData.playerUUID);
             sum+=playerData.point;
@@ -367,10 +370,10 @@ public class Donjara extends Thread{
             GlobalClass.currentPlayer.remove(playerData.playerUUID);
             query.append(",'").append(playerData.name).append("'");
         }
-        if(maxSeat==3)query.append(",null");
+        for(int i=playerList.size();i<4;i++)query.append(",null");
         query.append(",").append(rate);
-        for(int i=0;i<maxSeat;i++)query.append(",").append(playerList.get(i).point);
-        if(maxSeat==3)query.append(",0");
+        for(int i=0;i<playerList.size();i++)query.append(",").append(playerList.get(i).point);
+        for(int i=playerList.size();i<4;i++)query.append(",0");
         query.append(");");
         int finalSum = sum;
         Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {
@@ -379,7 +382,6 @@ public class Donjara extends Thread{
                 if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*maxSeat)GlobalClass.playable=false;
             }
         });
-        GlobalClass.DonjaraTable.remove(masterPlayer.getUniqueId());
     }
 
     private boolean pointMovement_Ron(int receiver,int sender,int point){//点が0以下になったらtrueを返す
@@ -510,6 +512,7 @@ public class Donjara extends Thread{
                     threadSleep(100);
                 }
                 playSoundAlPl(Sound.BLOCK_CHAIN_STEP);
+                turnPData.playerGUI.removeButton();
                 if(turnPData.discardedTileNum==101){//ツモした場合
                     kankankan();
                     break;
@@ -523,16 +526,16 @@ public class Donjara extends Thread{
                     ronTiles.addAll(turnPData.winningTiles);
                     System.out.println(turnPData.winningTiles);
                 }
-                turnPData.remTime = Math.max(10, Math.min(turnPData.remTime+1,10));
+                turnPData.remTime = Math.max(10, Math.min(turnPData.remTime+5,firstRemTime));
                 for(int i=0;i<10&&canRonPAc<canRon;i++){
                     threadSleep(1000);
                 }
+                for(int i=0;i<maxSeat;i++)playerList.get(i).playerGUI.removeButton();
                 if(ronPSeat.size()!=0){//ロンされた場合
                     kankankan();
                     break;
                 }
                 turnPData.playerGUI.setTiles(turnPData.playerHand.hand);
-                turnPData.playerGUI.removeButton();
                 turnPData.preLi_zhi=false;
                 threadSleep(500);
                 turnSeat=(turnSeat+1)%maxSeat;
@@ -543,6 +546,7 @@ public class Donjara extends Thread{
                     threadSleep(2000);
                 }
             }
+            playerList.get(turnSeat).playerGUI.removeButton();
             //結果表示
             for(PlayerData playerData:playerList.values()){
                 Player player=Bukkit.getPlayer(playerData.playerUUID);

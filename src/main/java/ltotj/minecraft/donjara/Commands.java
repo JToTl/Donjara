@@ -91,9 +91,9 @@ public class Commands implements CommandExecutor {
                     player.openInventory(GlobalClass.getTable(player.getUniqueId()).getPlData(player).playerGUI.inv.inv);
                     break;
                 case "list":
-                    player.sendMessage("参加可能な卓は以下の通りです");
+                    player.sendMessage("立っている卓は以下の通りです");
                     for(Donjara donjara:GlobalClass.DonjaraTable.values()){
-                        player.sendMessage(donjara.masterPlayer.getName()+"の卓|募集人数："+donjara.maxSeat+"人｜必要金額：§4"+donjara.rate*24000+"$");
+                        player.sendMessage(donjara.masterPlayer.getName()+"の卓|募集人数："+donjara.maxSeat+"人｜必要金額：§4"+donjara.rate*24000+"$|現在の人数:"+donjara.playerList.size()+"人");
                     }
                     break;
                 case "rule":
