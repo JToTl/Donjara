@@ -524,7 +524,6 @@ public class Donjara extends Thread{
                     turnPData.preLi_zhi=false;
                     turnPData.winningTiles=turnPData.playerHand.getWinningTiles();
                     ronTiles.addAll(turnPData.winningTiles);
-                    System.out.println(turnPData.winningTiles);
                 }
                 turnPData.remTime = Math.max(10, Math.min(turnPData.remTime+5,firstRemTime));
                 for(int i=0;i<10&&canRonPAc<canRon;i++){

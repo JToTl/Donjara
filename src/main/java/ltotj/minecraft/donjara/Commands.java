@@ -93,7 +93,7 @@ public class Commands implements CommandExecutor {
                 case "list":
                     player.sendMessage("立っている卓は以下の通りです");
                     for(Donjara donjara:GlobalClass.DonjaraTable.values()){
-                        player.sendMessage(donjara.masterPlayer.getName()+"の卓|募集人数："+donjara.maxSeat+"人｜必要金額：§4"+donjara.rate*24000+"$|§r現在の人数:"+donjara.playerList.size()+"人");
+                        player.sendMessage(donjara.masterPlayer.getName()+"の卓|募集人数："+donjara.maxSeat+"人｜必要金額：§4"+donjara.rate*24000+"$§｜r現在の人数:"+donjara.playerList.size()+"人");
                     }
                     break;
                 case "rule":
@@ -117,7 +117,7 @@ public class Commands implements CommandExecutor {
                         if(!GlobalClass.playable)player.sendMessage("新規ゲームを開催不可能にしました");
                         else player.sendMessage("新規ゲームを開催可能にしました");
                         break;
-//                    case "dp":デバッグ用
+//                    case "dp"://デバッグ用
 //                        GlobalClass.getTable(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
 //                        break;
                 }
