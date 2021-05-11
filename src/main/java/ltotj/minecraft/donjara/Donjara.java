@@ -189,7 +189,7 @@ public class Donjara extends Thread{
             playerData.playerDisTiles.reset();
             playerData.playerGUI.reset();
             playerData.playerHand.reset();
-            playerData.remTime=10;
+            playerData.remTime=firstRemTime;
             playerData.li_zhi=false;
             playerData.winningTiles=new ArrayList<>();
         }
@@ -213,6 +213,13 @@ public class Donjara extends Thread{
     private void playSoundAlPl(Sound sound){
         for(PlayerData playerData:playerList.values()){
             playerData.playSound(sound);
+        }
+    }
+
+    private void playSoundAlPl(Sound sound,float pitch){
+        for(PlayerData playerData:playerList.values()){
+            Player player= Bukkit.getPlayer(playerData.playerUUID);
+            if(player!=null)player.playSound(player.getLocation(),sound,2,pitch);
         }
     }
 
@@ -285,6 +292,12 @@ public class Donjara extends Thread{
                 else playerList.get(j).playerGUI.setOthersHead(playerList.get(i).head,(3*j+i+3)%4);
             }
         }
+    }
+
+    private void kankankan(){
+        threadSleep(300);
+        playSoundAlPl(Sound.BLOCK_ANVIL_USE,0);
+        threadSleep(2000);
     }
 
     private void setRonButton(int turnS,int row){
@@ -417,8 +430,8 @@ public class Donjara extends Thread{
             point*=1.5;
             for(int i=0;i<maxSeat;i++){//innnsPoint/3は100の位までで必ず割り切れる
                 if(i==receiver)continue;
-                insPoint+=Math.min(point/3,playerList.get(i).point);
-                playerList.get(i).point-=Math.min(point/3,playerList.get(i).point);
+                insPoint+=Math.min(point/(maxSeat-1),playerList.get(i).point);
+                playerList.get(i).point-=Math.min(point/(maxSeat-1),playerList.get(i).point);
                 if(playerList.get(i).point==0)r=true;
             }
             playerList.get(receiver).point+=insPoint;
@@ -433,8 +446,8 @@ public class Donjara extends Thread{
                     if(playerList.get(i).point==0)r=true;
                 }
                 else{
-                    insPoint+=Math.min(point,playerList.get(i).point);
-                    playerList.get(i).point-=Math.min(point,playerList.get(i).point);
+                    insPoint+=Math.min(childPoint,playerList.get(i).point);
+                    playerList.get(i).point-=Math.min(childPoint,playerList.get(i).point);
                     if(playerList.get(i).point==0)r=true;
                 }
             }
@@ -482,9 +495,7 @@ public class Donjara extends Thread{
                         threadSleep(500);
                         if(turnPData.playerHand.canTsumo()){
                             for(int j =0;j<20&&turnPData.li_zhi;j++){
-                                setClock(i/10);
-                                turnPData.remTime = turnPData.remTime - 1;
-                                threadSleep(500);
+                                threadSleep(1000);
                             }
                             turnPData.li_zhi=true;
                         }
@@ -499,7 +510,10 @@ public class Donjara extends Thread{
                     threadSleep(100);
                 }
                 playSoundAlPl(Sound.BLOCK_CHAIN_STEP);
-                if(turnPData.discardedTileNum==101)break;//ツモした場合
+                if(turnPData.discardedTileNum==101){//ツモした場合
+                    kankankan();
+                    break;
+                }
                 else if(turnPData.discardedTileNum==0)turnPData.discardedTileNum=9;
                 removedTile=turnPData.removeTile();//ここで手が入れ替わる
                 setRonButton(turnSeat,removedTile/10);
@@ -509,11 +523,14 @@ public class Donjara extends Thread{
                     ronTiles.addAll(turnPData.winningTiles);
                     System.out.println(turnPData.winningTiles);
                 }
-                turnPData.remTime = Math.max(5, Math.min(turnPData.remTime+1,10));
+                turnPData.remTime = Math.max(10, Math.min(turnPData.remTime+1,10));
                 for(int i=0;i<10&&canRonPAc<canRon;i++){
                     threadSleep(1000);
                 }
-                if(ronPSeat.size()!=0)break;//ロンされた場合
+                if(ronPSeat.size()!=0){//ロンされた場合
+                    kankankan();
+                    break;
+                }
                 turnPData.playerGUI.setTiles(turnPData.playerHand.hand);
                 turnPData.playerGUI.removeButton();
                 turnPData.preLi_zhi=false;
@@ -521,7 +538,10 @@ public class Donjara extends Thread{
                 turnSeat=(turnSeat+1)%maxSeat;
                 canRonPAc=0;
                 canRon=0;
-                if(deck.size()==0)leaderSeat+=1;
+                if(deck.size()==0){
+                    leaderSeat+=1;
+                    threadSleep(2000);
+                }
             }
             //結果表示
             for(PlayerData playerData:playerList.values()){
@@ -546,7 +566,6 @@ public class Donjara extends Thread{
                     threadSleep(3000);
                     resultGUI.clear();
                 }
-                if(!ronPSeat.contains(leaderSeat%maxSeat))leaderSeat+=1;
                 threadSleep(100);
                 setAllPlPoint();
                 threadSleep(2000);
@@ -554,9 +573,11 @@ public class Donjara extends Thread{
                     if(canContinue)canContinue=!pointMovement_Ron(ronPSeat.get(i),turnSeat,integerList.get(i));
                     threadSleep(500);
                 }
+                if(!ronPSeat.contains(leaderSeat%maxSeat))leaderSeat+=1;
             }
             else {
                 setAllPlPoint();
+                threadSleep(2000);
             }
             for(PlayerData plData:playerList.values()){
                 openInventory(Bukkit.getPlayer(plData.playerUUID),plData.playerGUI.inv.inv);

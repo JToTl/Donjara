@@ -117,9 +117,9 @@ public class Commands implements CommandExecutor {
                         if(!GlobalClass.playable)player.sendMessage("新規ゲームを開催不可能にしました");
                         else player.sendMessage("新規ゲームを開催可能にしました");
                         break;
-                    case "dp":
-                        GlobalClass.getTable(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
-                        break;
+//                    case "dp":デバッグ用
+//                        GlobalClass.getTable(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
+//                        break;
                 }
             }
             return true;

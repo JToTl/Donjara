@@ -21,7 +21,7 @@ public class PlayerGUI {
                 }
             }
         }
-        if(count==7)inv.setItem(52,inv.tileList.getMaterial(100),"§l§fオールマイティー");
+        if(count==7)inv.setItem(52,inv.tileList.getMaterial(100),"§lオールマイティー");
         inv.removeItem(53);
     }
 

@@ -68,7 +68,7 @@ public class PlayerHand {
     }
 
     public void drawnToHand() {
-        if(drawnTile<=0)return;
+        if(drawnTile==-1)return;
         if (drawnTile == 100) {
             almighty = 1;
         } else {
@@ -136,10 +136,10 @@ public class PlayerHand {
             return judge<=3&&judgee<=1;
         }
         //以下オールマイティを持っている場合
-        judgee=1;
-        for(int i=0;i<9;i++) if(rowSum(i)!=0)judgee*=rowSum(i);
+        judgee=0;
+        for(int i=0;i<9;i++) if(rowSum(i)%3!=0)judgee+=1;
         removeTile(drawnTile);
-        return judge<3||judgee==12;
+        return judge<3||judgee<=3;
     }
 
     public boolean canTsumo(){
