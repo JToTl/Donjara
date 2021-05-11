@@ -379,7 +379,7 @@ public class Donjara extends Thread{
         Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {
             @Override
             public void run() {
-                if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*maxSeat)GlobalClass.playable=false;
+                if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*playerList.size())GlobalClass.playable=false;
             }
         });
     }
