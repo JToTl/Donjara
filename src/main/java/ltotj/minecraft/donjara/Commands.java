@@ -35,7 +35,7 @@ public class Commands implements CommandExecutor {
                         player.sendMessage(Component.text("あなたは既にゲームに参加しています！/donjara open でゲーム画面を開きましょう！"));
                         break;
                     }
-                    else if(!args[1].matches("[+-]?\\d*(\\.\\d+)?")){
+                    else if(!args[1].matches("\"-?\\\\d+\"")){
                         player.sendMessage("コマンドが不正です");
                         break;
                     }
