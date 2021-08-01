@@ -8,11 +8,21 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Scanner;
+
 public class Commands implements CommandExecutor {
 
     private boolean isCurrentPlayer(Player player){
         return GlobalClass.currentPlayer.containsKey(player.getUniqueId());
     }
+
+    private boolean isStringInteger(String stringToCheck, int radix) {
+        Scanner sc = new Scanner(stringToCheck.trim());
+        if(!sc.hasNextInt(radix)) return false;
+        sc.nextInt(radix);
+        return !sc.hasNext();
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
@@ -21,6 +31,7 @@ public class Commands implements CommandExecutor {
         }
         else if(args.length!=0){
             Player player=(Player)sender;
+            System.out.println(args.length);
             switch (args[0]){//一般ぴーぽー用
                 case "start":
                     if(args.length<2){
@@ -35,7 +46,7 @@ public class Commands implements CommandExecutor {
                         player.sendMessage(Component.text("あなたは既にゲームに参加しています！/donjara open でゲーム画面を開きましょう！"));
                         break;
                     }
-                    else if(!args[1].matches("\"-?\\\\d+\"")){
+                    else if(!isStringInteger(args[1],10)){
                         player.sendMessage("コマンドが不正です");
                         break;
                     }
@@ -44,7 +55,7 @@ public class Commands implements CommandExecutor {
                         break;
                     }
                     else if(args.length>2){
-                        if(args[2].matches("[+-]?\\d*(\\.\\d+)?")){
+                        if(isStringInteger(args[1],20)){
                             double rate=Double.parseDouble(args[2]);
                             if(rate<GlobalClass.config.getDouble("minRate")||rate>GlobalClass.config.getDouble("maxRate")){
                                 player.sendMessage("賭け金は"+GlobalClass.config.getDouble("minRate")+"以上"+GlobalClass.config.getDouble("maxRate")+"以下の額で設定してください");

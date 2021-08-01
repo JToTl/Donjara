@@ -5,6 +5,7 @@ mysql:
   pass: "JToTl"
   db: "donjara_data"
 
-firstRemainingTime: 10
-maxRate:
-minRate:
+firstRemainingTime: 30
+maxRate: 10000
+minRate: 10
+canPlay: true

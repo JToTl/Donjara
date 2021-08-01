@@ -1,7 +1,7 @@
 name: Donjara
 version: ${project.version}
 main: ltotj.minecraft.donjara.Main
-api-version: 1.16
+api-version: 1.17
 depend: [Vault]
 commands:
   donjara:

@@ -15,7 +15,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Donjara extends Thread{
 
@@ -134,12 +133,12 @@ public class Donjara extends Thread{
     }
 
     private ItemStack getHead(Player player){
-        ItemStack head;
-        head = new ItemStack(Material.PLAYER_HEAD);
+        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta skull = (SkullMeta) head.getItemMeta();
         skull.setOwningPlayer(player);
         head.setItemMeta(skull);
         return head;
+
     }
 
     public boolean addPlayer(Player player){//メインスレッドからしか動かさないでね
@@ -583,7 +582,7 @@ public class Donjara extends Thread{
                 threadSleep(2000);
             }
             for(PlayerData plData:playerList.values()){
-                openInventory(Bukkit.getPlayer(plData.playerUUID),plData.playerGUI.inv.inv);
+                if(Bukkit.getPlayer(plData.playerUUID)!=null)openInventory(Bukkit.getPlayer(plData.playerUUID),plData.playerGUI.inv.inv);
             }
             threadSleep(4000);
             if(canContinue)canContinue=leaderSeat<maxSeat+firstLeader;
