@@ -262,7 +262,7 @@ public class PlayerHand {
     }
 
     private boolean isDiamond(){
-        return rowPartSum(0,0,3)+rowPartSum(1,0,3)+rowPartSum(2,0,3)+rowPartSum(3,0,3)+rowPartSum(4,0,3)>=8;
+        return rowPartSum(0,0,4)+rowPartSum(1,0,4)+rowPartSum(2,0,4)+rowPartSum(3,0,4)+rowPartSum(4,0,4)>=8;
     }
 
     private int golden() {

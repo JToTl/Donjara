@@ -375,12 +375,7 @@ public class Donjara extends Thread{
         for(int i=playerList.size();i<4;i++)query.append(",0");
         query.append(");");
         int finalSum = sum;
-        Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {
-            @Override
-            public void run() {
-                if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*playerList.size())GlobalClass.playable=false;
-            }
-        });
+        if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*playerList.size())GlobalClass.playable=false;
     }
 
     private boolean pointMovement_Ron(int receiver,int sender,int point){//点が0以下になったらtrueを返す

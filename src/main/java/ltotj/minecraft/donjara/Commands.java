@@ -55,7 +55,7 @@ public class Commands implements CommandExecutor {
                         break;
                     }
                     else if(args.length>2){
-                        if(isStringInteger(args[1],20)){
+                        if(isStringInteger(args[2],20)){
                             double rate=Double.parseDouble(args[2]);
                             if(rate<GlobalClass.config.getDouble("minRate")||rate>GlobalClass.config.getDouble("maxRate")){
                                 player.sendMessage("賭け金は"+GlobalClass.config.getDouble("minRate")+"以上"+GlobalClass.config.getDouble("maxRate")+"以下の額で設定してください");
@@ -69,6 +69,10 @@ public class Commands implements CommandExecutor {
                             GlobalClass.DonjaraTable.get(player.getUniqueId()).rate=rate;
                             GlobalClass.DonjaraTable.get(player.getUniqueId()).betting=true;
                             GlobalClass.DonjaraTable.get(player.getUniqueId()).addPlayer(player);
+                        }
+                        else{
+                            player.sendMessage("賭け金が正しく入力されていません");
+                            break;
                         }
                     }
                     else {
