@@ -27,14 +27,6 @@ public class Config {
             return "";
         }
     }
-    public Boolean getBoolean(String string){
-        try {
-            return config.getBoolean(string);
-        }catch(Exception exception){
-            System.out.println("コンフィグから"+string+"の値を取るのに失敗しました");
-            return false;
-        }
-    }
     public int getInt(String string){
         try{
             return config.getInt(string);

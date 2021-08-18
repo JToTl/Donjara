@@ -15,7 +15,6 @@ public final class Main extends JavaPlugin {
         GlobalClass.vaultManager=new VaultManager(this);
         GlobalClass.playable=false;
         GlobalClass.mySQLManager=new MySQLManager(this,"ドンジャラ");
-        GlobalClass.playable=GlobalClass.config.getBoolean("canPlay");
         getCommand("donjara").setExecutor(new Commands());
         new EventList(this);
 

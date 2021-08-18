@@ -375,7 +375,12 @@ public class Donjara extends Thread{
         for(int i=playerList.size();i<4;i++)query.append(",0");
         query.append(");");
         int finalSum = sum;
-        if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*playerList.size())GlobalClass.playable=false;
+        Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {
+            @Override
+            public void run() {
+                if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*playerList.size())GlobalClass.playable=false;
+            }
+        });
     }
 
     private boolean pointMovement_Ron(int receiver,int sender,int point){//点が0以下になったらtrueを返す
@@ -577,7 +582,7 @@ public class Donjara extends Thread{
                 threadSleep(2000);
             }
             for(PlayerData plData:playerList.values()){
-                if(Bukkit.getPlayer(plData.playerUUID)!=null)openInventory(Bukkit.getPlayer(plData.playerUUID),plData.playerGUI.inv.inv);
+                openInventory(Bukkit.getPlayer(plData.playerUUID),plData.playerGUI.inv.inv);
             }
             threadSleep(4000);
             if(canContinue)canContinue=leaderSeat<maxSeat+firstLeader;
