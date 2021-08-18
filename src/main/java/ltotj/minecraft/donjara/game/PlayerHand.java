@@ -197,7 +197,7 @@ public class PlayerHand {
         if(isMan10())list.add(new Yaku("§l§d役：おまんじゅう！",6,4000));
         if(isMining())list.add(new Yaku("§l§d役：いざ採掘",7,3000));
         if(isLogging())list.add(new Yaku("§l§d役：いざ伐採",8,3000));
-        if(isNether())list.add(new Yaku("§l§5役：さらなる深みへ",9,20000));
+        if(isNether())list.add(new Yaku("§l§5役：さらなる深みへ",9,30000));
         if(isMonsterHunt())list.add(new Yaku("§l§d役：モンスターハント",10,7000));
         if(isOnlyTools())list.add(new Yaku("§l§d役：道具の準備は万端",11,5000));
         if(isOnlyBlocks())list.add(new Yaku("§l§d役：立方体",12,5000));
@@ -262,7 +262,7 @@ public class PlayerHand {
     }
 
     private boolean isDiamond(){
-        return rowPartSum(0,0,3)+rowPartSum(1,0,3)+rowPartSum(2,0,3)+rowPartSum(3,0,3)+rowPartSum(4,0,3)>=8;
+        return rowPartSum(0,0,4)+rowPartSum(1,0,4)+rowPartSum(2,0,4)+rowPartSum(3,0,4)+rowPartSum(4,0,4)>=8;
     }
 
     private int golden() {

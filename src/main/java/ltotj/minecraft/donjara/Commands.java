@@ -8,11 +8,28 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Scanner;
+
 public class Commands implements CommandExecutor {
 
     private boolean isCurrentPlayer(Player player){
         return GlobalClass.currentPlayer.containsKey(player.getUniqueId());
     }
+
+    private boolean isStringDouble(String stringToCheck){
+        Scanner sc = new Scanner(stringToCheck.trim());
+        if(!sc.hasNextDouble()) return false;
+        sc.nextDouble();
+        return !sc.hasNext();
+    }
+
+    private boolean isStringInteger(String stringToCheck, int radix) {
+        Scanner sc = new Scanner(stringToCheck.trim());
+        if(!sc.hasNextInt(radix)) return false;
+        sc.nextInt(radix);
+        return !sc.hasNext();
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
@@ -21,6 +38,7 @@ public class Commands implements CommandExecutor {
         }
         else if(args.length!=0){
             Player player=(Player)sender;
+            System.out.println(args.length);
             switch (args[0]){//一般ぴーぽー用
                 case "start":
                     if(args.length<2){
@@ -35,7 +53,7 @@ public class Commands implements CommandExecutor {
                         player.sendMessage(Component.text("あなたは既にゲームに参加しています！/donjara open でゲーム画面を開きましょう！"));
                         break;
                     }
-                    else if(!args[1].matches("\"-?\\\\d+\"")){
+                    else if(!isStringInteger(args[1],10)){
                         player.sendMessage("コマンドが不正です");
                         break;
                     }
@@ -44,7 +62,7 @@ public class Commands implements CommandExecutor {
                         break;
                     }
                     else if(args.length>2){
-                        if(args[2].matches("[+-]?\\d*(\\.\\d+)?")){
+                        if(isStringDouble(args[2])){
                             double rate=Double.parseDouble(args[2]);
                             if(rate<GlobalClass.config.getDouble("minRate")||rate>GlobalClass.config.getDouble("maxRate")){
                                 player.sendMessage("賭け金は"+GlobalClass.config.getDouble("minRate")+"以上"+GlobalClass.config.getDouble("maxRate")+"以下の額で設定してください");
@@ -58,6 +76,10 @@ public class Commands implements CommandExecutor {
                             GlobalClass.DonjaraTable.get(player.getUniqueId()).rate=rate;
                             GlobalClass.DonjaraTable.get(player.getUniqueId()).betting=true;
                             GlobalClass.DonjaraTable.get(player.getUniqueId()).addPlayer(player);
+                        }
+                        else{
+                            player.sendMessage("賭け金が正しく入力されていません");
+                            break;
                         }
                     }
                     else {
@@ -104,7 +126,22 @@ public class Commands implements CommandExecutor {
                             ,"/donjara join <募集者のID> |卓に参加します"
                             ,"/donjara open |参加中のゲーム画面を開きます"
                             ,"/donjara list |参加可能な卓を表示します"
-                            ,"/donjara rule |牌・役の一覧を表示します"});
+                            ,"/donjara rule |牌・役の一覧を表示します"
+                            ,"/donjara cpu |試し打ちができます"});
+                    break;
+                case "cpu":
+                    if(!GlobalClass.playable){
+                        player.sendMessage("プラグイン[Donjara]はただいま停止中です");
+                        break;
+                    }
+                    else if(isCurrentPlayer(player)){
+                        player.sendMessage(Component.text("あなたは既にゲームに参加しています！/donjara open でゲーム画面を開きましょう！"));
+                        break;
+                    }
+                    else{
+                        GlobalClass.DonjaraTable.put(player.getUniqueId(),new DonjaraCPU(player));
+                        GlobalClass.currentPlayer.put(player.getUniqueId(),player.getUniqueId());
+                    }
                     break;
             }
             if(player.hasPermission("donjara.op")){
@@ -121,21 +158,6 @@ public class Commands implements CommandExecutor {
 //                        GlobalClass.getTable(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
 //                        break;
                 }
-                new Thread(){
-                    @Override
-                    public void run(){
-                        try {
-                            sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }.start();
-                Bukkit.getScheduler().runTaskAsynchronously(Main.getPlugin(Main.class),new Runnable(){
-                    @Override
-                    public void run(){
-                    }
-                });
             }
             return true;
         }

@@ -19,17 +19,17 @@ import java.util.*;
 public class Donjara extends Thread{
 
     Date startTime,endTime;
-    int maxSeat,turnSeat = 0, leaderSeat,firstLeader,canRon=0,canRonPAc,firstRemTime;
-    double rate=0;
-    HashMap<Integer,PlayerData> playerList=new HashMap<>();
-    HashMap<UUID,Integer> seatList=new HashMap<>();
-    Deck deck=new Deck();
-    ResultGUI resultGUI=new ResultGUI();
+    protected int maxSeat,turnSeat = 0, leaderSeat,firstLeader,canRon=0,canRonPAc,firstRemTime;
+    protected double rate=0;
+    protected HashMap<Integer,PlayerData> playerList=new HashMap<>();
+    protected HashMap<UUID,Integer> seatList=new HashMap<>();
+    protected Deck deck=new Deck();
+    protected ResultGUI resultGUI=new ResultGUI();
     Player masterPlayer;
     Random random=new Random();
-    List<DisTilesGUI> disTilesGUIS=new ArrayList<>();
-    List<Integer> ronTiles=new ArrayList<>(),ronPSeat=new ArrayList<>();
-    boolean canContinue=true,betting=false;
+    protected List<DisTilesGUI> disTilesGUIS=new ArrayList<>();
+    protected List<Integer> ronTiles=new ArrayList<>(),ronPSeat=new ArrayList<>();
+    protected boolean canContinue=true,betting=false;
 
     public Donjara(Player player,int maxSeat){
         masterPlayer=player;
@@ -40,20 +40,20 @@ public class Donjara extends Thread{
         firstRemTime=GlobalClass.config.getInt("firstRemainingTime");
     }
 
-    class PlayerData{
-        UUID playerUUID;
-        String name;
-        PlayerGUI playerGUI=new PlayerGUI();;
+    protected class PlayerData{
+        public UUID playerUUID;
+        public String name;
+        public PlayerGUI playerGUI=new PlayerGUI();;
         PlayerDiscardedTiles playerDisTiles=new PlayerDiscardedTiles();;
-        PlayerHand playerHand=new PlayerHand();;
+        public PlayerHand playerHand=new PlayerHand();;
         ItemStack head;
-        boolean li_zhi=false,preLi_zhi=false;
+        public boolean li_zhi=false,preLi_zhi=false;
         public int discardedTileNum=0;//101でツモの意
         List<Integer> winningTiles=new ArrayList<>();
 
         int remTime=firstRemTime,point=24000;//コンフィグから設定できたらいいかもしれない
 
-        PlayerData(Player player){
+        public PlayerData(Player player){
             if(player==null){//デバッグ用
                 return;
             }
@@ -63,7 +63,7 @@ public class Donjara extends Thread{
             setUpPlGUI();
         }
 
-        private void setUpPlGUI(){
+        protected void setUpPlGUI(){
             playerGUI.inv.setItem(17,head);
             playerGUI.setGlassPane();
         }
@@ -82,14 +82,14 @@ public class Donjara extends Thread{
             if(player!=null)player.playSound(player.getLocation(),sound,2,2);
         }
 
-        private void drawTile(){
+        protected void drawTile(){
             int tile=deck.draw();
             playerHand.drawTile(tile);
             playerGUI.setDrawnTile(tile);
             playSound(Sound.BLOCK_WOODEN_BUTTON_CLICK_OFF);
         }
 
-        private int removeTile() {//捨てられた牌を返す
+        protected int removeTile() {//捨てられた牌を返す
             int ins;
             if(discardedTileNum==9)ins=playerHand.drawnTile;
             else ins= playerHand.getTile(discardedTileNum);
@@ -104,7 +104,7 @@ public class Donjara extends Thread{
             return ins;
         }
 
-        private void setButtons(){
+        protected void setButtons(){
             if(playerHand.canTsumo())playerGUI.setTsumoButton();
             if(playerHand.canLi_zhi()&&!li_zhi)playerGUI.setLi_zhiButton();
         }
@@ -160,13 +160,13 @@ public class Donjara extends Thread{
         return true;
     }
 
-    private void setRestTiles(int rest){
+    protected void setRestTiles(int rest){
         for(PlayerData playerData:playerList.values()){
             playerData.playerGUI.setRestTiles(rest);
         }
     }
 
-    private void setPlayersPane() {
+    protected void setPlayersPane() {
         for (int i=0;i<maxSeat;i++) {
             for (int j = 0; j < maxSeat; j++) {
                 if(i==j)continue;
@@ -177,7 +177,7 @@ public class Donjara extends Thread{
         }
     }
 
-    private void reset(){
+    protected void reset(){
         deck.reset();
         disTilesGUIS.get(0).resetTiles();
         disTilesGUIS.get(1).resetTiles();
@@ -195,14 +195,14 @@ public class Donjara extends Thread{
         }
     }
 
-    private void setClock(int time){
+    protected void setClock(int time){
         for(PlayerData playerData:playerList.values()){
             playerData.playerGUI.setClock(time);
             playerData.playSound(Sound.BLOCK_STONE_BUTTON_CLICK_ON);
         }
     }
 
-    private void dealFirstTiles(){
+    protected void dealFirstTiles(){
         for(PlayerData playerData:playerList.values()) {
             for (int i = 0; i < 8; i++) {
                 playerData.playerHand.addTile(deck.draw());
@@ -210,20 +210,20 @@ public class Donjara extends Thread{
         }
     }
 
-    private void playSoundAlPl(Sound sound){
+    protected void playSoundAlPl(Sound sound){
         for(PlayerData playerData:playerList.values()){
             playerData.playSound(sound);
         }
     }
 
-    private void playSoundAlPl(Sound sound,float pitch){
+    protected void playSoundAlPl(Sound sound,float pitch){
         for(PlayerData playerData:playerList.values()){
             Player player= Bukkit.getPlayer(playerData.playerUUID);
             if(player!=null)player.playSound(player.getLocation(),sound,2,pitch);
         }
     }
 
-    private void setFirstTiles(){
+    protected void setFirstTiles(){
         for(int i=0;i<maxSeat;i++){
             for(int j=0;j<maxSeat;j++){
                 if(i!=j){
@@ -236,7 +236,7 @@ public class Donjara extends Thread{
         }
     }
 
-    private int setYakuAndPoint(PlayerData playerData){
+    protected int setYakuAndPoint(PlayerData playerData){
         resultGUI.clear();
         List<Yaku> list=playerData.playerHand.yaku();
         if(playerData.head!=null)resultGUI.inv.setItem(40,playerData.head);//if文はデバッグ用
@@ -278,7 +278,7 @@ public class Donjara extends Thread{
         return point;
     }
 
-    private void setPlayerHeadsData(){
+    protected void setPlayerHeadsData(){
         for(PlayerData playerData:playerList.values()){
             if(playerData.head==null)continue;//デバッグ用だけど残してもいい
             ItemMeta meta=playerData.head.getItemMeta();
@@ -294,13 +294,13 @@ public class Donjara extends Thread{
         }
     }
 
-    private void kankankan(){
+    protected void kankankan(){
         threadSleep(300);
         playSoundAlPl(Sound.BLOCK_ANVIL_USE,0);
         threadSleep(2000);
     }
 
-    private void setRonButton(int turnS,int row){
+    protected void setRonButton(int turnS,int row){
         if(!ronTiles.contains(row))return;
         for(int i=0;i<maxSeat;i++){
             if(i==turnS)continue;
@@ -311,12 +311,12 @@ public class Donjara extends Thread{
         }
     }
 
-    private void setPlayerPoint(int seat){
+    protected void setPlayerPoint(int seat){
         resultGUI.inv.setItem(10*seat+9,playerList.get(seat).head);
         resultGUI.setPoint(10*seat+14,playerList.get(seat).point);
     }
 
-    private void removePlayerPoint(int seat){
+    protected void removePlayerPoint(int seat){
         resultGUI.inv.removeItem(10*seat+10);
         resultGUI.inv.removeItem(10*seat+11);
         resultGUI.inv.removeItem(10*seat+12);
@@ -324,13 +324,13 @@ public class Donjara extends Thread{
         resultGUI.inv.removeItem(10*seat+14);
     }
 
-    private void setAllPlPoint(){
+    protected void setAllPlPoint(){
         for(int i=0;i<maxSeat;i++){
             setPlayerPoint(i);
         }
     }
 
-    private void threadSleep(int time){
+    protected void threadSleep(int time){
         try {
             sleep(time);
         } catch (InterruptedException e) {
@@ -338,7 +338,7 @@ public class Donjara extends Thread{
         }
     }
 
-    private String getDateForMySQL(Date date){
+    protected String getDateForMySQL(Date date){
         DateFormat df=new SimpleDateFormat("yyyy-MM-dd HHH:mm:ss");
         return df.format(date);
     }
@@ -347,7 +347,7 @@ public class Donjara extends Thread{
         return playerList.get(seatList.get(player.getUniqueId()));
     }
 
-    private void endGame(){//お金の処理を入れるならここに書くべき 点数合算にズレがあったら記録するように
+    protected void endGame(){//お金の処理を入れるならここに書くべき 点数合算にズレがあったら記録するように
         GlobalClass.DonjaraTable.remove(masterPlayer.getUniqueId());
         threadSleep(1000);
         int sum=0;
@@ -375,15 +375,10 @@ public class Donjara extends Thread{
         for(int i=playerList.size();i<4;i++)query.append(",0");
         query.append(");");
         int finalSum = sum;
-        Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {
-            @Override
-            public void run() {
-                if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*playerList.size())GlobalClass.playable=false;
-            }
-        });
+        if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*playerList.size())GlobalClass.playable=false;
     }
 
-    private boolean pointMovement_Ron(int receiver,int sender,int point){//点が0以下になったらtrueを返す
+    protected boolean pointMovement_Ron(int receiver,int sender,int point){//点が0以下になったらtrueを返す
         if(sender==leaderSeat%maxSeat||receiver==leaderSeat%maxSeat)point*=1.5;
         point=Math.min(point,playerList.get(sender).point);
         playerList.get(receiver).point+=point;
@@ -408,7 +403,7 @@ public class Donjara extends Thread{
         playSoundAlPl(Sound.BLOCK_BEACON_ACTIVATE);
     }
 
-    private void sendResult(){
+    protected void sendResult(){
         String[] message=new String[6];
         message[0]="==========結果==========";
         for(int i=0;i<maxSeat;i++){
@@ -424,7 +419,7 @@ public class Donjara extends Thread{
         }
     }
 
-    private boolean pointMovement_Tsumo(int receiver,int point){//点が0以下になったらtrueを返す 親と子のツモで処理を変えてる
+    protected boolean pointMovement_Tsumo(int receiver,int point){//点が0以下になったらtrueを返す 親と子のツモで処理を変えてる
         int insPoint=0;
         boolean r=false;
         if(receiver==leaderSeat%maxSeat){
@@ -582,7 +577,7 @@ public class Donjara extends Thread{
                 threadSleep(2000);
             }
             for(PlayerData plData:playerList.values()){
-                openInventory(Bukkit.getPlayer(plData.playerUUID),plData.playerGUI.inv.inv);
+                if(Bukkit.getPlayer(plData.playerUUID)!=null)openInventory(Bukkit.getPlayer(plData.playerUUID),plData.playerGUI.inv.inv);
             }
             threadSleep(4000);
             if(canContinue)canContinue=leaderSeat<maxSeat+firstLeader;
