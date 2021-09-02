@@ -34,7 +34,7 @@ public class PlayerHand {
     */
 
     public int[][] hand=new int[9][9];
-    public int almighty,drawnTile=-1;
+    public int almighty=0,drawnTile=-1;
 
     public void reset(){
         hand=new int[9][9];
@@ -262,7 +262,7 @@ public class PlayerHand {
     }
 
     private boolean isDiamond(){
-        return rowPartSum(0,0,4)+rowPartSum(1,0,4)+rowPartSum(2,0,4)+rowPartSum(3,0,4)+rowPartSum(4,0,4)>=8;
+        return rowPartSum(0,0,4)+rowPartSum(1,0,4)+rowPartSum(2,0,4)+rowPartSum(3,0,4)+rowPartSum(4,0,4)+almighty==9;
     }
 
     private int golden() {
