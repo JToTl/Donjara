@@ -1,6 +1,5 @@
 package ltotj.minecraft.donjara;
 
-
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -8,9 +7,35 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
+import static java.lang.Math.*;
+
 public class Commands implements CommandExecutor {
+
+    MySQLManager mysql=new MySQLManager(Main.getPlugin(Main.class),"DonjaraCommand");
+
+    private String getYenString(String money){//１２桁まで対応
+        if(money.length()==0){
+            return "null";
+        }
+        StringBuilder yen=new StringBuilder();
+        int first=((money.length()+2)%3)+1;
+        for(int i=0;i<1+(money.length()-1)/3;i++){
+            if(i==0){
+                yen.append(money.substring(0,first));
+            }
+            else{
+                yen.append(",").append(money.substring(first+3*(i-1),first+3*i));
+            }
+        }
+        yen.append("円");
+        return yen.toString();
+    }
 
     private boolean isCurrentPlayer(Player player){
         return GlobalClass.currentPlayer.containsKey(player.getUniqueId());
@@ -30,15 +55,114 @@ public class Commands implements CommandExecutor {
         return !sc.hasNext();
     }
 
+    private String[] getPointRanking(){
+        String[] strs=new String[11];
+        strs[0]="§a§l獲得点数ランキング";
+        int rank=1;
+        ResultSet result=mysql.query("select name,totalPoint from playerData order by totalPoint desc limit 10;");
+        if(result!=null){
+            while (true){
+                try {
+                    if (!result.next()) break;
+                    if(result.getInt("totalPoint")<=0) break;
+                    strs[rank]="§7§l"+ rank +"位 §b"+ result.getString("name") +" §e§l"+ result.getInt("totalPoint") +"点";
+                    rank++;
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+            }
+            try {
+                result.close();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+        return strs;
+    }
+
+    private String[] getMoneyRanking(){
+        String[] strs=new String[10];
+        strs[0]="§a§l獲得金額ランキング";
+        int rank=1;
+        ResultSet result=mysql.query("select name,totalMoney from playerData order by totalMoney desc limit 10;");
+        if(result!=null){
+            while (true){
+                try {
+                    if (!result.next()) break;
+                    if(result.getInt("totalMoney")<=0) break;
+                    strs[rank]="§7§l"+ rank +"位 §b"+ result.getString("name") +" §e§l"+ getYenString(result.getString("totalMoney"));
+                    rank++;
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+
+            }
+            try {
+                result.close();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+        mysql.close();
+        return strs;
+    }
+
+    private String[] getPriceRanking(){
+        String[] strs=new String[6];
+        strs[0]="§a§l一回の獲得金額ランキング";
+        for(int i=1;i<6;i++){
+            int point=GlobalClass.config.getInt("winningPriceRanking."+ i +".point"),rate=GlobalClass.config.getInt("winningPriceRanking."+ i +".rate");
+            strs[i]="§7§l"+ i +"位 §b"+ GlobalClass.config.getString("winningPriceRanking."+ i +".name") +" "+ point
+                    +"点 レート"+ getYenString(String.valueOf(rate)) + ": §e＋"+getYenString(String.valueOf(rate*(point-24000)));
+        }
+        return strs;
+    }
+
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("プレイヤー以外は実行できません");
-            return true;
-        }
-        else if(args.length!=0){
+        if(args.length!=0){
+            if(sender.hasPermission("donjara.op")){
+                switch (args[0]){//権限持ち用
+                    case "reload":
+                        GlobalClass.config.load();
+                        return true;
+                    case "on":
+                        GlobalClass.playable=true;
+                        GlobalClass.config.setBoolean("canPlay",true);
+                        sender.sendMessage("新規ゲームを開催可能にしました");
+                        return true;
+                    case "off":
+                        GlobalClass.playable=false;
+                        GlobalClass.config.setBoolean("canPlay",false);
+                        sender.sendMessage("新規ゲームを開催不可能にしました");
+                        return true;
+                    case "pointranking":
+                        GlobalClass.executor.execute(new Runnable(){
+                            @Override
+                            public void run(){
+                                sender.sendMessage(getPointRanking());
+                            }
+                        });
+                        return true;
+                    case "moneyranking":
+                        GlobalClass.executor.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                sender.sendMessage(getMoneyRanking());
+                            }
+                        });
+                        return true;
+                    case "priceranking":
+                        sender.sendMessage(getPriceRanking());
+                        return true;
+                }
+            }
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("プレイヤー以外は実行できません");
+                return true;
+            }
             Player player=(Player)sender;
-            System.out.println(args.length);
             switch (args[0]){//一般ぴーぽー用
                 case "start":
                     if(args.length<2){
@@ -62,8 +186,8 @@ public class Commands implements CommandExecutor {
                         break;
                     }
                     else if(args.length>2){
-                        if(isStringDouble(args[2])){
-                            double rate=Double.parseDouble(args[2]);
+                        if(isStringInteger(args[2],10)){
+                            int rate=Integer.parseInt(args[2]);
                             if(rate<GlobalClass.config.getDouble("minRate")||rate>GlobalClass.config.getDouble("maxRate")){
                                 player.sendMessage("賭け金は"+GlobalClass.config.getDouble("minRate")+"以上"+GlobalClass.config.getDouble("maxRate")+"以下の額で設定してください");
                                 break;
@@ -144,22 +268,6 @@ public class Commands implements CommandExecutor {
                     }
                     break;
             }
-            if(player.hasPermission("donjara.op")){
-                switch (args[0]){//権限持ち用
-                    case "reloadconfig":
-                        GlobalClass.config.load();
-                        break;
-                    case "switch":
-                        GlobalClass.playable=!GlobalClass.playable;
-                        if(!GlobalClass.playable)player.sendMessage("新規ゲームを開催不可能にしました");
-                        else player.sendMessage("新規ゲームを開催可能にしました");
-                        break;
-//                    case "dp"://デバッグ用
-//                        GlobalClass.getTable(Bukkit.getPlayer(args[1]).getUniqueId()).addDummyPlayer();
-//                        break;
-                }
-            }
-            return true;
         }
 
         return false;

@@ -250,7 +250,7 @@ public class PlayerHand {
     }
 
     private boolean isMonsterHunt(){
-        return (rowSum(0)+rowSum(2))*rowSum(4)*rowSum(8)!=0;
+        return rowSum(0)*rowSum(4)*rowSum(8)!=0;
     }
 
     private boolean isOnlyTools(){

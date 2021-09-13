@@ -38,13 +38,10 @@ public class MySQLManager {
         this.connected = false;
         loadConfig();
 
-        this.connected = Connect(HOST, DB, USER, PASS,PORT);
+        this.connected = Connect(HOST, DB, USER, PASS, PORT);
 
-        if(!this.connected) {
+        if (!this.connected) {
             plugin.getLogger().info("Unable to establish a MySQL connection.");
-        }else{//あとで
-            String sql = "create table if not exists gameLog(startTime DATETIME,endTime DATETIME,P1 TEXT,P2 TEXT,P3 TEXT,P4 TEXT,Rate DECIMAL,P1Point INT,P2Point INT,P3Point INT,P4Point INT);";
-            execute(sql);
         }
     }
 

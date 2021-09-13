@@ -11,25 +11,37 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import ltotj.minecraft.donjara.GlobalClass.*;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Donjara extends Thread{
 
+    private int gameId;
     Date startTime,endTime;
-    protected int maxSeat,turnSeat = 0, leaderSeat,firstLeader,canRon=0,canRonPAc,firstRemTime;
-    protected double rate=0;
-    protected HashMap<Integer,PlayerData> playerList=new HashMap<>();
+    public int maxSeat;
+    protected int turnSeat = 0;
+    protected int leaderSeat;
+    protected int firstLeader;
+    protected int canRon=0;
+    protected int canRonPAc;
+    protected int firstRemTime;
+    public int rate=0;
+    public HashMap<Integer,PlayerData> playerList=new HashMap<>();
     protected HashMap<UUID,Integer> seatList=new HashMap<>();
     protected Deck deck=new Deck();
     protected ResultGUI resultGUI=new ResultGUI();
-    Player masterPlayer;
+    public Player masterPlayer;
     Random random=new Random();
     protected List<DisTilesGUI> disTilesGUIS=new ArrayList<>();
     protected List<Integer> ronTiles=new ArrayList<>(),ronPSeat=new ArrayList<>();
-    protected boolean canContinue=true,betting=false;
+    protected boolean canContinue=true;
+    public boolean betting=false;
+    private MySQLManager mysql;
 
     public Donjara(Player player,int maxSeat){
         masterPlayer=player;
@@ -105,6 +117,7 @@ public class Donjara extends Thread{
         }
 
         protected void setButtons(){
+            playerGUI.removeButton();
             if(playerHand.canTsumo())playerGUI.setTsumoButton();
             if(playerHand.canLi_zhi()&&!li_zhi)playerGUI.setLi_zhiButton();
         }
@@ -275,6 +288,7 @@ public class Donjara extends Thread{
         else resultGUI.setPoint(15,point);
         playSoundAlPl(Sound.ITEM_TOTEM_USE);
         threadSleep(3000);
+        saveHandsData(list,point,playerData.name,leaderSeat%maxSeat==seatList.get(playerData.playerUUID),turnSeat==leaderSeat%maxSeat);
         return point;
     }
 
@@ -347,16 +361,12 @@ public class Donjara extends Thread{
         return playerList.get(seatList.get(player.getUniqueId()));
     }
 
-    protected void endGame(){//お金の処理を入れるならここに書くべき 点数合算にズレがあったら記録するように
+    private void cancelGame(){
         GlobalClass.DonjaraTable.remove(masterPlayer.getUniqueId());
         threadSleep(1000);
-        int sum=0;
-        endTime=new Date();
-        StringBuilder query= new StringBuilder("INSERT INTO gameLog(startTime,endTime,P1,P2,P3,P4,Rate,P1Point,P2Point,P3Point,P4Point) VALUES('" + getDateForMySQL(startTime) + "','" + getDateForMySQL(endTime)+"'");
         for(int i=0;i<playerList.size();i++){
             PlayerData playerData=playerList.get(i);
             Player player=Bukkit.getPlayer(playerData.playerUUID);
-            sum+=playerData.point;
             if(player!=null) {
                 GlobalClass.vaultManager.deposit(player,playerData.point*rate);
                 Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {
@@ -367,15 +377,67 @@ public class Donjara extends Thread{
                 });
             }
             GlobalClass.currentPlayer.remove(playerData.playerUUID);
-            query.append(",'").append(playerData.name).append("'");
         }
-        for(int i=playerList.size();i<4;i++)query.append(",null");
-        query.append(",").append(rate);
-        for(int i=0;i<playerList.size();i++)query.append(",").append(playerList.get(i).point);
-        for(int i=playerList.size();i<4;i++)query.append(",0");
-        query.append(");");
+    }
+
+    protected void endGame() {
+        GlobalClass.DonjaraTable.remove(masterPlayer.getUniqueId());
+        threadSleep(1000);
+        int sum = 0;
+        endTime = new Date();
+        StringBuilder query = new StringBuilder("update gameLog set endTime='" + getDateForMySQL(endTime) + "'");
+        for (int i = 0; i < maxSeat; i++) {
+            PlayerData playerData = playerList.get(i);
+            Player player = Bukkit.getPlayer(playerData.playerUUID);
+            sum += playerData.point;
+            query.append(",P").append(i + 1).append("Point=").append(playerData.point);
+            if (player != null) {
+                GlobalClass.vaultManager.deposit(player, playerData.point * rate);
+                Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {
+                    @Override
+                    public void run() {
+                        player.closeInventory();
+                    }
+                });
+            }
+            GlobalClass.currentPlayer.remove(playerData.playerUUID);
+        }
+        query.append(" where id=").append(gameId).append(";");
         int finalSum = sum;
-        if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*playerList.size())GlobalClass.playable=false;
+        if (!mysql.execute(query.toString()) || finalSum != 24000 * playerList.size()) {
+            System.out.println("ドンジャラのゲームデータをMySQLに保存できませんでした　安全のため、新規ゲームを開催不能にします");
+            GlobalClass.playable = false;
+        }
+        if (rate!=0) {
+            for (int i = 0; i < playerList.size(); i++) {
+                updatePlayerData(i);
+            }
+        }
+    }
+
+    private void updatePlayerData(int seat){
+        PlayerData playerData=playerList.get(seat);
+        ResultSet result=mysql.query("select totalWinningPoint,totalWinningMoney from playerData where uuid='"+ playerData.playerUUID +"';");
+        int winningPoint=playerData.point-24000,winningMoney=winningPoint*rate;
+        if(result!=null){
+            try {
+                if(!result.next()){
+                    mysql.execute("insert into playerData(name,uuid) values('"+ playerData.name +"','"+ playerData.playerUUID +"');");
+                    result.close();
+                }
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+        StringBuilder query=new StringBuilder("update playerData set ");
+        if(winningPoint>0){
+            query.append("totalWinningPoint=totalWinningPoint+").append(winningPoint).append(",totalWinningMoney=totalWinningMoney+")
+                    .append(winningPoint).append(",");
+        }
+        query.append("totalPoint=totalPoint+").append(winningPoint).append(",totalMoney=totalMoney+").append(winningMoney)
+                .append(" where uuid='").append(playerData.playerUUID).append("';");
+        mysql.execute(query.toString());
+        mysql.close();
     }
 
     protected boolean pointMovement_Ron(int receiver,int sender,int point){//点が0以下になったらtrueを返す
@@ -403,6 +465,79 @@ public class Donjara extends Thread{
         playSoundAlPl(Sound.BLOCK_BEACON_ACTIVATE);
     }
 
+    private void saveHandsData(List<Yaku> yakuList,int point,String plname,boolean parent,boolean childrenToParent){
+        StringBuilder hands=new StringBuilder();
+        int finalPoint=point;
+        for(int i=0;i<yakuList.size();i++){
+            hands.append(yakuList.get(i).number);
+            if(i!=yakuList.size()-1){
+                hands.append(",");
+            }
+        }
+        if(parent){
+            finalPoint=point*3/2;
+            hands.append(",15");
+        }
+        else if(childrenToParent){
+            finalPoint=point*3/2;
+            hands.append(",16");
+        }
+        mysql.execute("insert into handsLog(gameid,player,point,hands) values("+ gameId +", '"+ plname +"'," + finalPoint +",'"+ hands.toString() +"');");
+    }
+
+    private void registerGameLog(){
+        //mysqlの接続準備とゲームの開始ログ入れ
+        mysql= new MySQLManager(Main.getPlugin(Main.class),"Donjara");
+        startTime= new Date();
+        StringBuilder query=new StringBuilder();
+        query.append("insert into gameLog(startTime,P1,P2,P3,P4,Rate) values('").append(getDateForMySQL(startTime)).append("'");
+        for(int i=0;i<playerList.size();i++){
+            query.append(",'").append(playerList.get(i).name).append("'");
+        }
+        for(int i=playerList.size();i<4;i++){
+            query.append(",null");
+        }
+        query.append(",").append(rate).append(");");
+        mysql.execute(query.toString());
+
+        //gameID取得
+        ResultSet result=mysql.query("select id from gameLog where P1='"+ playerList.get(0).name +"' order by startTime desc limit 1 ;");
+        if(result!=null){
+            try {
+                if(result.next()){
+                    if(result.getRow()!=0){
+                        gameId=result.getInt("id");
+                    }
+                }
+                result.close();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+        mysql.close();
+    }
+
+    private void updatePriceRanking(PlayerData playerData){
+        int i;
+        for(i=6;i>1;i--){
+            if(GlobalClass.config.getInt("winningPriceRanking."+ (i-1) +".rate")*(GlobalClass.config.getInt("winningPriceRanking."+ (i-1) +".point")-24000)>(playerData.point-24000)*rate)break;
+        }
+        if(i!=6){
+            for(int j=5;j>i;j--){
+                GlobalClass.config.setInt("winningPriceRanking."+ j +".rate",GlobalClass.config.getInt("winningPriceRanking."+ (j-1) +".rate"));
+                GlobalClass.config.setInt("winningPriceRanking."+ j +".point",GlobalClass.config.getInt("winningPriceRanking."+ (j-1) +".point"));
+                GlobalClass.config.setString("winningPriceRanking."+ j +".name",GlobalClass.config.getString("winningPriceRanking."+ (j-1) +".name"));
+            }
+            GlobalClass.config.setInt("winningPriceRanking."+ i +".rate",rate);
+            GlobalClass.config.setInt("winningPriceRanking."+ i +".point",playerData.point);
+            GlobalClass.config.setString("winningPriceRanking."+ i +".name",playerData.name);
+            Player player=Bukkit.getPlayer(playerData.playerUUID);
+            if(player!=null){
+                player.sendMessage("§e§lおめでとうございます！一回の獲得金額ランキング"+ i +"位に登録されました！");
+            }
+        }
+    }
+
     protected void sendResult(){
         String[] message=new String[6];
         message[0]="==========結果==========";
@@ -411,11 +546,12 @@ public class Donjara extends Thread{
             if(playerData.name==null)continue;//デバッグ用
             message[i+1]=playerData.name+"："+playerData.point+"点";
         }
-        message[maxSeat+1]="=======================";
+        message[maxSeat+1]="========================";
         for(PlayerData playerData:playerList.values()){
             Player player=Bukkit.getPlayer(playerData.playerUUID);
             if(player==null)continue;
             player.sendMessage(message);
+            updatePriceRanking(playerData);
         }
     }
 
@@ -468,9 +604,10 @@ public class Donjara extends Thread{
         }
         if (playerList.size() != maxSeat) {
             Bukkit.getServer().broadcast(Component.text(masterPlayer.getName() + "の卓は人が集まらなかったので解散しました"), Server.BROADCAST_CHANNEL_USERS);
-            endGame();
+            cancelGame();
             return;
         }
+        registerGameLog();
         leaderSeat = random.nextInt(maxSeat);
         firstLeader=leaderSeat;
         while (canContinue){//一回のゲームの流れ
@@ -519,7 +656,7 @@ public class Donjara extends Thread{
                     turnPData.winningTiles=turnPData.playerHand.getWinningTiles();
                     ronTiles.addAll(turnPData.winningTiles);
                 }
-                turnPData.remTime = Math.max(10, Math.min(turnPData.remTime+5,firstRemTime));
+                turnPData.remTime = Math.max(10, Math.min(turnPData.remTime+5,firstRemTime));//10と+5
                 for(int i=0;i<10&&canRonPAc<canRon;i++){
                     threadSleep(1000);
                 }

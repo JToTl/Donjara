@@ -1,6 +1,6 @@
 package ltotj.minecraft.donjara;
 
-import ltotj.minecraft.donjara.Donjara;
+import ltotj.minecraft.donjara.game.Yaku;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,34 +30,52 @@ public class DonjaraCPU extends Donjara {
     }
 
     @Override
+    protected int setYakuAndPoint(PlayerData playerData){
+        resultGUI.clear();
+        List<Yaku> list=playerData.playerHand.yaku();
+        if(playerData.head!=null)resultGUI.inv.setItem(40,playerData.head);//if文はデバッグ用
+        int count=0,point=0;
+        playerData.playerHand.drawnToHand();
+        for(int i=0;i<9;i++){
+            for(int j=0;j<9;j++){
+                if(playerData.playerHand.hand[i][j]==1){
+                    resultGUI.inv.setTile(count+45,i,j);
+                    playSoundAlPl(Sound.BLOCK_CROP_BREAK);
+                    threadSleep(300);
+                    count+=1;
+                }
+            }
+        }
+        if(count!=9)resultGUI.inv.setTile(53,100);
+        for(int i=0;i<list.size();i++){
+            threadSleep(1000);
+            resultGUI.setYaku(20+(i/5)*9+i%5,list.get(i).number,list.get(i).name,list.get(i).point);
+            playSoundAlPl(Sound.BLOCK_ANVIL_FALL);
+        }
+        if(seatList.get(playerData.playerUUID)==leaderSeat%maxSeat){
+            threadSleep(1000);
+            resultGUI.inv.setItem(20+(list.size()/5)*9+list.size()%5,Material.PLAYER_HEAD,"§l§d役：親孝行","§l§6×1.5倍");
+            playSoundAlPl(Sound.BLOCK_ANVIL_FALL);
+        }
+        else if(turnSeat==leaderSeat%maxSeat){
+            threadSleep(1000);
+            resultGUI.inv.setItem(20+(list.size()/5)*9+list.size()%5,Material.PLAYER_HEAD,"§l§d役：親不幸","§l§6×1.5倍");
+            playSoundAlPl(Sound.BLOCK_ANVIL_FALL);
+        }
+        threadSleep(1000);
+        for (Yaku yaku : list) point += yaku.point;
+        if(seatList.get(playerData.playerUUID)==leaderSeat%maxSeat||turnSeat==leaderSeat%maxSeat)
+            resultGUI.setPoint(15,point*3/2);
+        else resultGUI.setPoint(15,point);
+        playSoundAlPl(Sound.ITEM_TOTEM_USE);
+        threadSleep(3000);
+        return point;
+    }
+
+    @Override
     protected void endGame(){
         GlobalClass.DonjaraTable.remove(masterPlayer.getUniqueId());
         threadSleep(1000);
-//        int sum=0;
-//        endTime=new Date();
-//        StringBuilder query= new StringBuilder("INSERT INTO gameLog(startTime,endTime,P1,P2,P3,P4,Rate,P1Point,P2Point,P3Point,P4Point) VALUES('" + getDateForMySQL(startTime) + "','" + getDateForMySQL(endTime)+"'");
-//        for(int i=0;i<playerList.size();i++){
-//            PlayerData playerData=playerList.get(i);
-//            Player player=Bukkit.getPlayer(playerData.playerUUID);
-//            sum+=playerData.point;
-//            if(player!=null) {
-//                Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        player.closeInventory();
-//                    }
-//                });
-//            }
-//            GlobalClass.currentPlayer.remove(playerData.playerUUID);
-//            query.append(",'").append(playerData.name).append("'");
-//        }
-//        for(int i=playerList.size();i<4;i++)query.append(",null");
-//        query.append(",").append(rate);
-//        for(int i=0;i<playerList.size();i++)query.append(",").append(playerList.get(i).point);
-//        for(int i=playerList.size();i<4;i++)query.append(",0");
-//        query.append(");");
-//        int finalSum = sum;
-//        if(!GlobalClass.mySQLManager.execute(query.toString())|| finalSum !=24000*playerList.size())GlobalClass.playable=false;
         Player p=Bukkit.getPlayer(playerList.get(0).playerUUID);
         if(p!=null){
                 Bukkit.getScheduler().runTask(Main.getPlugin(Main.class), new Runnable() {

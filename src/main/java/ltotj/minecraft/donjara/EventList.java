@@ -1,10 +1,12 @@
 package ltotj.minecraft.donjara;
 
 import net.kyori.adventure.text.Component;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -22,10 +24,10 @@ public class EventList implements Listener {
     @EventHandler
     public void ClickGUI(InventoryClickEvent e) {
         Player player=(Player)e.getWhoClicked();
-        if(e.getCurrentItem() == null)return;
-        ItemStack clickedItem = e.getCurrentItem();
         if ((e.getView().title().equals(Component.text("DonjaraTable"))||e.getView().title().equals(Component.text("DiscardedTiles"))||e.getView().title().equals(Component.text("Result")))) {
             e.setCancelled(true);
+            if(e.getCurrentItem() == null)return;
+            ItemStack clickedItem = e.getCurrentItem();
             if (GlobalClass.currentPlayer.containsKey(e.getWhoClicked().getUniqueId())) {
                 Donjara donjara = GlobalClass.getTable(player.getUniqueId());
                 Donjara.PlayerData playerData = donjara.getPlData(player);
@@ -36,11 +38,11 @@ public class EventList implements Listener {
                     player.openInventory(donjara.disTilesGUIS.get(1).inv.inv);
                 } else if (matchName(clickedItem, "§l§4戻る")) {
                     player.openInventory(playerData.playerGUI.inv.inv);
-                } else if (playerData.preLi_zhi) {
+                } else if (playerData.preLi_zhi&&!playerData.li_zhi) {
                     if (clickedItem.containsEnchantment(Enchantment.LUCK)) {
+                        playerData.li_zhi = true;
                         playerData.discardedTileNum = slot % 44;
                         donjara.setLi_zhiStick();
-                        playerData.li_zhi = true;
                     } else {//リーチのキャンセル処理
                         playerData.playerGUI.setLi_zhiButton();
                         playerData.playerGUI.setTiles(donjara.playerList.get(donjara.turnSeat).playerHand.hand);
@@ -96,6 +98,8 @@ public class EventList implements Listener {
         }
         else if(e.getView().title().equals(Component.text("役"))){
             e.setCancelled(true);
+            if(e.getCurrentItem() == null)return;
+            ItemStack clickedItem = e.getCurrentItem();
             if(matchName(clickedItem,"§c役一覧に戻る"))player.openInventory(GlobalClass.gameRuleGUI.yakuGUIs.get(0).inv);
         }
         else if(e.getView().title().equals(Component.text("役一覧"))){
@@ -106,17 +110,23 @@ public class EventList implements Listener {
         }
         else if(e.getView().title().equals(Component.text("牌一覧"))){
             e.setCancelled(true);
+            if(e.getCurrentItem() == null)return;
+            ItemStack clickedItem = e.getCurrentItem();
             if(matchName(clickedItem,"§a２ページ目へ"))player.openInventory(GlobalClass.gameRuleGUI.tileGUIs.get(1).inv);
             else if(matchName(clickedItem,"§a１ページ目へ"))player.openInventory(GlobalClass.gameRuleGUI.tileGUIs.get(0).inv);
         }
         else if(e.getView().title().equals(Component.text("牌・役確認"))){
             e.setCancelled(true);
+            if(e.getCurrentItem() == null)return;
+            ItemStack clickedItem = e.getCurrentItem();
             if(matchName(clickedItem,"§a牌を確認する"))player.openInventory(GlobalClass.gameRuleGUI.tileGUIs.get(0).inv);
             else if(matchName(clickedItem,"§a役を確認する"))player.openInventory(GlobalClass.gameRuleGUI.yakuGUIs.get(0).inv);
             else if(matchName(clickedItem,"§c参加中のゲームに戻る")&&GlobalClass.currentPlayer.containsKey(player.getUniqueId()))player.openInventory(GlobalClass.getTable(player.getUniqueId()).getPlData(player).playerGUI.inv.inv);
         }
-
-        if(matchName(clickedItem,"§c前の画面に戻る"))player.openInventory(GlobalClass.gameRuleGUI.ruleGUI.inv);
+        if(e.getCurrentItem()!= null&&matchName(e.getCurrentItem(),"§c前の画面に戻る")){
+            e.setCancelled(true);
+            player.openInventory(GlobalClass.gameRuleGUI.ruleGUI.inv);
+        }
     }
 }
 
