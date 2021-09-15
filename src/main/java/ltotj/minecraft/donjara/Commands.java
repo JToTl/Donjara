@@ -76,6 +76,11 @@ public class Commands implements CommandExecutor {
                 throwables.printStackTrace();
             }
         }
+        try {
+            mysql.close();
+        } catch (NullPointerException throwables) {
+            throwables.printStackTrace();
+        }
         return strs;
     }
 
@@ -104,8 +109,8 @@ public class Commands implements CommandExecutor {
             }
         }
         try {
-            result.close();
-        } catch (SQLException throwables) {
+            mysql.close();
+        } catch (NullPointerException throwables) {
             throwables.printStackTrace();
         }
         return strs;
