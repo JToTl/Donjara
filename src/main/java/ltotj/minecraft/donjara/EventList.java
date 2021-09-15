@@ -72,7 +72,7 @@ public class EventList implements Listener {
                                 break;
                         }
                     }
-                    if (donjara.isTurnPl(player.getUniqueId()) && Math.abs(slot - 49) < 5) {
+                    if (donjara.isTurnPl(player.getUniqueId()) && Math.abs(slot - 49) < 5&&playerData.discardedTileNum!=101) {
                         playerData.discardedTileNum = slot % 44;
                     }
 
