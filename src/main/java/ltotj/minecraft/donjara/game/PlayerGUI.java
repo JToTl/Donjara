@@ -86,7 +86,6 @@ public class PlayerGUI {
     public void preLi_zhi(PlayerHand playerHand){//handは9*9 canDisうんぬんは9
         int count=0;
         List<Integer> canDisTiles=playerHand.li_zhi();
-        System.out.println(canDisTiles);
         for(int i=0;i<9;i++){
             for(int j=0;j<9;j++){
                 if(playerHand.hand[i][j]==1){
