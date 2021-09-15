@@ -17,8 +17,6 @@ import static java.lang.Math.*;
 
 public class Commands implements CommandExecutor {
 
-    MySQLManager mysql=new MySQLManager(Main.getPlugin(Main.class),"DonjaraCommand");
-
     private String getYenString(String money){//１２桁まで対応
         if(money.length()==0){
             return "null";
@@ -55,10 +53,11 @@ public class Commands implements CommandExecutor {
         return !sc.hasNext();
     }
 
-    private String[] getPointRanking(){
+    private String[] getPointRanking(){//スレッドで
         String[] strs=new String[11];
         strs[0]="§a§l獲得点数ランキング";
         int rank=1;
+        MySQLManager mysql=new MySQLManager(Main.getPlugin(Main.class),"DonjaraCommand");
         ResultSet result=mysql.query("select name,totalPoint from playerData order by totalPoint desc limit 10;");
         if(result!=null){
             while (true){
@@ -80,10 +79,11 @@ public class Commands implements CommandExecutor {
         return strs;
     }
 
-    private String[] getMoneyRanking(){
+    private String[] getMoneyRanking(){//スレッドで
         String[] strs=new String[10];
         strs[0]="§a§l獲得金額ランキング";
         int rank=1;
+        MySQLManager mysql=new MySQLManager(Main.getPlugin(Main.class),"DonjaraCommand");
         ResultSet result=mysql.query("select name,totalMoney from playerData order by totalMoney desc limit 10;");
         if(result!=null){
             while (true){
@@ -103,7 +103,11 @@ public class Commands implements CommandExecutor {
                 throwables.printStackTrace();
             }
         }
-        mysql.close();
+        try {
+            result.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
         return strs;
     }
 
