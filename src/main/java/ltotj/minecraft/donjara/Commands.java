@@ -156,6 +156,9 @@ public class Commands implements CommandExecutor {
                     case "priceranking":
                         sender.sendMessage(getPriceRanking());
                         return true;
+                    case "test":
+                        GlobalClass.getTable(((Player)sender).getUniqueId()).addDummyPlayer();
+                        return true;
                 }
             }
             if (!(sender instanceof Player)) {

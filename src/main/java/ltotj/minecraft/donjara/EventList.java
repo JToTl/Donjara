@@ -68,7 +68,7 @@ public class EventList implements Listener {
                             case 23:
                             case 32:
                             case 41:
-                                donjara.disTilesGUIS.get(donjara.playerList.get((Math.min(3 % 4, donjara.seatList.size()))).disGUINum()).inv.openInventory(player);
+                                donjara.disTilesGUIS.get(donjara.playerList.get((Math.min(3 % 4, donjara.seatList.size()-1))).disGUINum()).inv.openInventory(player);
                                 break;
                         }
                     }

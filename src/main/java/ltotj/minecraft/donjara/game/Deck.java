@@ -13,6 +13,10 @@ public class Deck {
         reset();
     }
 
+//    public void debugReset(){
+//        deck=new ArrayList<>();
+//    }
+
     public void reset(){
         deck=new ArrayList<>();
         for(int i=0;i<9;i++){//こっちがrow

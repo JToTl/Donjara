@@ -485,7 +485,7 @@ public class Donjara extends Thread{
         mysql.execute("insert into handsLog(gameid,player,point,hands) values("+ gameId +", '"+ plname +"'," + finalPoint +",'"+ hands.toString() +"');");
     }
 
-    private void registerGameLog(){
+    private boolean registerGameLog(){
         //mysqlの接続準備とゲームの開始ログ入れ
         mysql= new MySQLManager(Main.getPlugin(Main.class),"Donjara");
         startTime= new Date();
@@ -514,7 +514,14 @@ public class Donjara extends Thread{
                 throwables.printStackTrace();
             }
         }
-        mysql.close();
+        try{
+            mysql.close();
+            return true;
+        }
+        catch (NullPointerException e) {
+            System.out.println("[Donjara]ゲーム開始時のDB接続に失敗しました");
+            return false;
+        }
     }
 
     private void updatePriceRanking(PlayerData playerData){
@@ -607,7 +614,16 @@ public class Donjara extends Thread{
             cancelGame();
             return;
         }
-        registerGameLog();
+        if(!registerGameLog()){
+            for(int i=0;i<playerList.size();i++){
+                Player player=Bukkit.getPlayer(playerList.get(i).playerUUID);
+                if(player!=null){
+                    player.sendMessage("ゲームの情報を取得できませんでした ゲームがキャンセルされます");
+                }
+            }
+            cancelGame();
+            return;
+        }
         leaderSeat = random.nextInt(maxSeat);
         firstLeader=leaderSeat;
         while (canContinue){//一回のゲームの流れ
