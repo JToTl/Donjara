@@ -64,7 +64,7 @@ public class Commands implements CommandExecutor {
                 try {
                     if (!result.next()) break;
                     if(result.getInt("totalPoint")<=0) break;
-                    strs[rank]="§7§l"+ rank +"位 §b"+ result.getString("name") +" §e§l"+ result.getInt("totalPoint") +"点";
+                    strs[rank]="§7§l"+ rank +".§b"+ result.getString("name") +" §e§l"+ result.getInt("totalPoint") +"点";
                     rank++;
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
@@ -95,7 +95,7 @@ public class Commands implements CommandExecutor {
                 try {
                     if (!result.next()) break;
                     if(result.getInt("totalMoney")<=0) break;
-                    strs[rank]="§7§l"+ rank +"位 §b"+ result.getString("name") +" §e§l"+ getYenString(result.getString("totalMoney"));
+                    strs[rank]="§7§l"+ rank +".§b"+ result.getString("name") +" §e§l"+ getYenString(result.getString("totalMoney"));
                     rank++;
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
@@ -121,7 +121,7 @@ public class Commands implements CommandExecutor {
         strs[0]="§a§l一回の獲得金額ランキング";
         for(int i=1;i<11;i++){
             int point=GlobalClass.config.getInt("winningPriceRanking."+ i +".point"),rate=GlobalClass.config.getInt("winningPriceRanking."+ i +".rate");
-            strs[i]="§7§l"+ i +"位 §b"+ GlobalClass.config.getString("winningPriceRanking."+ i +".name") +" "+ point
+            strs[i]="§7§l"+ i +".§b"+ GlobalClass.config.getString("winningPriceRanking."+ i +".name") +" "+ point
                     +"点 : §e§l"+getYenString(String.valueOf(rate*(point-24000)));
         }
         return strs;

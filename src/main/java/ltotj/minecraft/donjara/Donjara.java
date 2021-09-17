@@ -154,6 +154,24 @@ public class Donjara extends Thread{
 
     }
 
+    private String getYenString(String money){//１２桁まで対応
+        if(money.length()==0){
+            return "null";
+        }
+        StringBuilder yen=new StringBuilder();
+        int first=((money.length()+2)%3)+1;
+        for(int i=0;i<1+(money.length()-1)/3;i++){
+            if(i==0){
+                yen.append(money.substring(0,first));
+            }
+            else{
+                yen.append(",").append(money.substring(first+3*(i-1),first+3*i));
+            }
+        }
+        yen.append("円");
+        return yen.toString();
+    }
+
     public boolean addPlayer(Player player){//メインスレッドからしか動かさないでね
         if(playerList.size()>=maxSeat||(betting&&GlobalClass.vaultManager.getBalance(player.getUniqueId())<24000*rate))return false;
         playerList.put(playerList.size(),new PlayerData(player));
@@ -610,7 +628,7 @@ public class Donjara extends Thread{
     @Override
     public void run() {
         for (int i = 120; i > 0 && playerList.size() < maxSeat; i--) {
-            if (i % 20 == 0) Bukkit.getServer().broadcast(Component.text("§l§w"+masterPlayer.getName() + "§l§aが一点あたり§r§e" + rate + "$§l§aで§e" + maxSeat + "§a人ドンジャラを募集中・・・残り§c" + i + "§a秒  §4必要金額："+rate*24000+"$"), Server.BROADCAST_CHANNEL_USERS);
+            if (i % 20 == 0) Bukkit.getServer().broadcast(Component.text("§l§w"+masterPlayer.getName() + "§l§aが一点あたり§r§e" + rate + "§l§aで§e" + maxSeat + "§a人ドンジャラを募集中・・・残り§c" + i + "§a秒  §4必要金額："+getYenString(String.valueOf(rate*24000))), Server.BROADCAST_CHANNEL_USERS);
             threadSleep(1000);
         }
         if (playerList.size() != maxSeat) {
