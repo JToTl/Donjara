@@ -9,10 +9,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 public class EventList implements Listener {
+
 
     public EventList(Plugin plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -44,6 +46,7 @@ public class EventList implements Listener {
                     if (clickedItem.containsEnchantment(Enchantment.LUCK)) {
                         playerData.li_zhi = true;
                         playerData.discardedTileNum = slot % 44;
+                        playerData.playerGUI.setTiles(donjara.playerList.get(donjara.turnSeat).playerHand.hand);
                         donjara.setLi_zhiStick();
                     } else {//リーチのキャンセル処理
                         playerData.playerGUI.setLi_zhiButton();

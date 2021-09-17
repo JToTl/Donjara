@@ -122,7 +122,7 @@ public class Commands implements CommandExecutor {
         for(int i=1;i<11;i++){
             int point=GlobalClass.config.getInt("winningPriceRanking."+ i +".point"),rate=GlobalClass.config.getInt("winningPriceRanking."+ i +".rate");
             strs[i]="§7§l"+ i +"位 §b"+ GlobalClass.config.getString("winningPriceRanking."+ i +".name") +" "+ point
-                    +"点 : §e§l"+getYenString(String.valueOf(rate*point));
+                    +"点 : §e§l"+getYenString(String.valueOf(rate*(point-24000)));
         }
         return strs;
     }

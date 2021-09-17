@@ -214,6 +214,9 @@ public class Donjara extends Thread{
             playerData.playerGUI.setClock(time);
             playerData.playSound(Sound.BLOCK_STONE_BUTTON_CLICK_ON);
         }
+        if(time<4){
+            playSoundAlPl(Sound.BLOCK_NOTE_BLOCK_BELL,2F);
+        }
     }
 
     protected void dealFirstTiles(){
