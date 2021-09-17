@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -27,6 +28,7 @@ public class EventList implements Listener {
         if ((e.getView().title().equals(Component.text("DonjaraTable"))||e.getView().title().equals(Component.text("DiscardedTiles"))||e.getView().title().equals(Component.text("Result")))) {
             e.setCancelled(true);
             if(e.getCurrentItem() == null)return;
+            if(e.getClickedInventory().getType().equals(InventoryType.PLAYER))return;
             ItemStack clickedItem = e.getCurrentItem();
             if (GlobalClass.currentPlayer.containsKey(e.getWhoClicked().getUniqueId())) {
                 Donjara donjara = GlobalClass.getTable(player.getUniqueId());

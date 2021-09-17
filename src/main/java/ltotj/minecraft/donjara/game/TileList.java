@@ -92,6 +92,8 @@ public class TileList {//番号とMaterialを対応付けまーす！！
         yaku.put(12,Material.GRASS_BLOCK);//ブロックオンリー
         yaku.put(13,Material.DIAMOND);//ダイアモンド
         yaku.put(14,Material.GOLD_BLOCK);//ゴールデン
+
+        yaku.put(-1,Material.BARRIER);//エラーアイテム
     }
 
 

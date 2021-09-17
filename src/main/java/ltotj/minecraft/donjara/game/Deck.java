@@ -13,9 +13,9 @@ public class Deck {
         reset();
     }
 
-//    public void debugReset(){
-//        deck=new ArrayList<>();
-//    }
+    public void debugReset(){
+        deck=new ArrayList<>();
+    }
 
     public void reset(){
         deck=new ArrayList<>();

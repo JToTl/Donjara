@@ -85,7 +85,7 @@ public class Commands implements CommandExecutor {
     }
 
     private String[] getMoneyRanking(){//スレッドで
-        String[] strs=new String[10];
+        String[] strs=new String[11];
         strs[0]="§a§l獲得金額ランキング";
         int rank=1;
         MySQLManager mysql=new MySQLManager(Main.getPlugin(Main.class),"DonjaraCommand");
@@ -117,12 +117,12 @@ public class Commands implements CommandExecutor {
     }
 
     private String[] getPriceRanking(){
-        String[] strs=new String[6];
+        String[] strs=new String[11];
         strs[0]="§a§l一回の獲得金額ランキング";
-        for(int i=1;i<6;i++){
+        for(int i=1;i<11;i++){
             int point=GlobalClass.config.getInt("winningPriceRanking."+ i +".point"),rate=GlobalClass.config.getInt("winningPriceRanking."+ i +".rate");
             strs[i]="§7§l"+ i +"位 §b"+ GlobalClass.config.getString("winningPriceRanking."+ i +".name") +" "+ point
-                    +"点 レート"+ getYenString(String.valueOf(rate)) + ": §e＋"+getYenString(String.valueOf(rate*(point-24000)));
+                    +"点 : §e§l"+getYenString(String.valueOf(rate*point));
         }
         return strs;
     }

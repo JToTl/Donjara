@@ -204,6 +204,7 @@ public class Donjara extends Thread{
             playerData.playerHand.reset();
             playerData.remTime=firstRemTime;
             playerData.li_zhi=false;
+            playerData.preLi_zhi=false;
             playerData.winningTiles=new ArrayList<>();
         }
     }
@@ -526,11 +527,11 @@ public class Donjara extends Thread{
 
     private void updatePriceRanking(PlayerData playerData){
         int i;
-        for(i=6;i>1;i--){
+        for(i=11;i>1;i--){
             if(GlobalClass.config.getInt("winningPriceRanking."+ (i-1) +".rate")*(GlobalClass.config.getInt("winningPriceRanking."+ (i-1) +".point")-24000)>(playerData.point-24000)*rate)break;
         }
-        if(i!=6){
-            for(int j=5;j>i;j--){
+        if(i!=11){
+            for(int j=10;j>i;j--){
                 GlobalClass.config.setInt("winningPriceRanking."+ j +".rate",GlobalClass.config.getInt("winningPriceRanking."+ (j-1) +".rate"));
                 GlobalClass.config.setInt("winningPriceRanking."+ j +".point",GlobalClass.config.getInt("winningPriceRanking."+ (j-1) +".point"));
                 GlobalClass.config.setString("winningPriceRanking."+ j +".name",GlobalClass.config.getString("winningPriceRanking."+ (j-1) +".name"));

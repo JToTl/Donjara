@@ -190,6 +190,9 @@ public class PlayerHand {
             case 1:
                 list.add(new Yaku("§l§5役：一色",2,20000));
                 break;
+            default:
+                list.add(new Yaku("§4§lエラー",-1,0));
+                return list;
         }
         if(isThreeTypes())list.add(new Yaku("§l§d役：三種類",3,6000));
         if(isHighlander())list.add(new Yaku("§l§d役：ハイランダー",4,3000));
