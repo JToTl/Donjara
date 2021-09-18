@@ -255,7 +255,7 @@ public class Commands implements CommandExecutor {
                     player.openInventory(GlobalClass.gameRuleGUI.ruleGUI.inv);
                     break;
                 case "help":
-                    player.sendMessage(new String[]{"/donjara start <募集人数:3~4> (一点当たりの金額:"+GlobalClass.config.getDouble("minRate")+"以上"+GlobalClass.config.getDouble("maxRate")+"以下) |卓を作成します"
+                    player.sendMessage(new String[]{"/donjara start <募集人数:3~4> (一点当たりの金額:"+GlobalClass.config.getDouble("minRate")+"円以上"+GlobalClass.config.getDouble("maxRate")+"円以下,（電子マネー）) |卓を作成します"
                             ,"/donjara join <募集者のID> |卓に参加します"
                             ,"/donjara open |参加中のゲーム画面を開きます"
                             ,"/donjara list |参加可能な卓を表示します"
