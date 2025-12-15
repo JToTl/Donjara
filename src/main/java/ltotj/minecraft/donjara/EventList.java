@@ -43,7 +43,7 @@ public class EventList implements Listener {
                 } else if (matchName(clickedItem, "§l§4戻る")) {
                     player.openInventory(playerData.playerGUI.inv.inv);
                 } else if (playerData.preLi_zhi&&!playerData.li_zhi) {
-                    if (clickedItem.containsEnchantment(Enchantment.LUCK)) {
+                    if (clickedItem.containsEnchantment(Enchantment.FORTUNE)) {
                         playerData.li_zhi = true;
                         playerData.discardedTileNum = slot % 44;
                         playerData.playerGUI.setTiles(donjara.playerList.get(donjara.turnSeat).playerHand.hand);
