@@ -192,11 +192,12 @@ public class PlayerGUI {
     }
 
     public void setRestTiles(int rest){
-        if(rest<=0){
+        int displayAmount = rest - 1;
+        if(displayAmount <= 0){
             inv.removeItem(30);
             return;
         }
-        inv.setItem(30,rest-1,Material.QUARTZ_BLOCK,"§l山","§l§6§l残り"+(rest-1)+"枚");
+        inv.setItem(30,displayAmount,Material.QUARTZ_BLOCK,"§l山","§l§6§l残り"+displayAmount+"枚");
     }
 
     public void setClock(int time){//秒

@@ -2,6 +2,8 @@ package ltotj.minecraft.donjara;
 
 import ltotj.minecraft.donjara.game.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -41,6 +43,8 @@ public class Donjara extends Thread{
     protected List<Integer> ronTiles=new ArrayList<>(),ronPSeat=new ArrayList<>();
     protected boolean canContinue=true;
     public boolean betting=false;
+    // 鍵付きの部屋（/donjara private）のパスワード。null なら通常の卓
+    public String password=null;
     private MySQLManager mysql;
 
     public Donjara(Player player,int maxSeat){
@@ -64,6 +68,7 @@ public class Donjara extends Thread{
         List<Integer> winningTiles=new ArrayList<>();
 
         int remTime=firstRemTime,point=24000;//コンフィグから設定できたらいいかもしれない
+        int rating=-1;// 開始時のレート。レート対象外の卓は -1 のまま（頭に出さない）
 
         public PlayerData(Player player){
             if(player==null){//デバッグ用
@@ -318,8 +323,11 @@ public class Donjara extends Thread{
         for(PlayerData playerData:playerList.values()){
             if(playerData.head==null)continue;//デバッグ用だけど残してもいい
             ItemMeta meta=playerData.head.getItemMeta();
-            if(leaderSeat%maxSeat==seatList.get(playerData.playerUUID))meta.lore(Arrays.asList(Component.text("§e持ち点:"+playerData.point),Component.text("§4親")));
-            else meta.lore(Arrays.asList(Component.text("§e持ち点:"+playerData.point),Component.text("§4子")));
+            List<Component> lore=new ArrayList<>();
+            lore.add(Component.text("§e持ち点:"+playerData.point));
+            lore.add(Component.text(leaderSeat%maxSeat==seatList.get(playerData.playerUUID)?"§4親":"§4子"));
+            if(playerData.rating>=0)lore.add(Component.text("§bレート:"+playerData.rating));
+            meta.lore(lore);
             playerData.head.setItemMeta(meta);
         }
         for(int i=0;i<maxSeat;i++){
@@ -434,6 +442,81 @@ public class Donjara extends Thread{
             for (int i = 0; i < playerList.size(); i++) {
                 updatePlayerData(i);
             }
+        }
+        if (ratingEnabled()) {
+            updateRatings();
+        }
+    }
+
+    public boolean isPrivate(){
+        return password!=null;
+    }
+
+    // 募集中（CPU 戦でなく、まだ席が空いている）か
+    public boolean isRecruiting(){
+        return !(this instanceof DonjaraCPU)&&playerList.size()<maxSeat;
+    }
+
+    // 押すと /donjara join する「クリックで参加」（鍵付きの卓はパスワード込み）
+    public Component joinButton(){
+        String command="/donjara join "+masterPlayer.getName()+(password!=null?" "+password:"");
+        String fee=betting?"必要金額 "+getYenString(String.valueOf(rate*24000)):"賭けなし";
+        return Component.text("§e§l§n[クリックで参加]")
+                .clickEvent(ClickEvent.runCommand(command))
+                .hoverEvent(HoverEvent.showText(Component.text("§eクリックで参加（"+fee+"）")));
+    }
+
+    // レートが動くのは、鍵付きでない卓で一点あたりの金額が rating.minRate 以上のときだけ（CPU 戦は endGame ごと別）
+    public boolean ratingEnabled(){
+        return !isPrivate()&&rate>0&&rate>=GlobalClass.config.getConfig().getInt("rating.minRate",5);
+    }
+
+    private DonjaraRating.Settings ratingSettings(){
+        org.bukkit.configuration.file.FileConfiguration c=GlobalClass.config.getConfig();
+        DonjaraRating.Settings s=new DonjaraRating.Settings();
+        s.uma3=umaFromConfig(c.getDoubleList("rating.uma3"),s.uma3);
+        s.uma4=umaFromConfig(c.getDoubleList("rating.uma4"),s.uma4);
+        s.scoreMultiplier=c.getDouble("rating.scoreMultiplier",s.scoreMultiplier);
+        s.correctionDivisor=c.getDouble("rating.correctionDivisor",s.correctionDivisor);
+        s.protectionThreshold=c.getInt("rating.protectionThreshold",s.protectionThreshold);
+        return s;
+    }
+
+    private double[] umaFromConfig(List<Double> list,double[] fallback){
+        if(list.size()!=fallback.length)return fallback;
+        double[] uma=new double[list.size()];
+        for(int i=0;i<uma.length;i++)uma[i]=list.get(i);
+        return uma;
+    }
+
+    // ゲームスレッドから呼ぶ（DB 待ちあり）
+    private void updateRatings(){
+        List<DonjaraRating.Entry> entries=new ArrayList<>();
+        for(int i=0;i<playerList.size();i++){
+            PlayerData playerData=playerList.get(i);
+            entries.add(new DonjaraRating.Entry(playerData.playerUUID,DonjaraRatingRepository.getRating(playerData.playerUUID),playerData.point));
+        }
+        Map<UUID,DonjaraRating.Result> results=DonjaraRating.calculate(entries,ratingSettings());
+        for(int i=0;i<playerList.size();i++){
+            PlayerData playerData=playerList.get(i);
+            DonjaraRating.Result r=results.get(playerData.playerUUID);
+            DonjaraRatingRepository.applyChange(playerData.playerUUID,playerData.name,r.delta,r.rank);
+        }
+        // 卓の全員分を順位順に、参加者全員へ（自分の行は名前を太字に）
+        List<PlayerData> byRank=new ArrayList<>(playerList.values());
+        byRank.sort(Comparator.comparingInt(p->results.get(p.playerUUID).rank));
+        for(PlayerData viewer:playerList.values()){
+            Player player=Bukkit.getPlayer(viewer.playerUUID);
+            if(player==null)continue;
+            List<String> lines=new ArrayList<>();
+            lines.add("§e§l====== ドンジャラ レート ======");
+            for(PlayerData p:byRank){
+                DonjaraRating.Result r=results.get(p.playerUUID);
+                String delta=r.delta>=0?"§a+"+r.delta:"§c"+r.delta;
+                String name=p==viewer?"§f§l"+p.name:"§f"+p.name;
+                lines.add("§7"+r.rank+"位 "+name+" §f"+(r.after-r.delta)+" → §b§l"+r.after+" §7("+delta+"§7)");
+            }
+            player.sendMessage(lines.toArray(new String[0]));
         }
     }
 
@@ -568,12 +651,15 @@ public class Donjara extends Thread{
     }
 
     protected void sendResult(){
-        String[] message=new String[6];
+        String[] message=new String[maxSeat+2];
         message[0]="==========結果==========";
         for(int i=0;i<maxSeat;i++){
             PlayerData playerData=playerList.get(i);
-            if(playerData.name==null)continue;//デバッグ用
-            message[i+1]=playerData.name+"："+playerData.point+"点";
+            if(playerData.name==null){
+                message[i+1]="";
+            } else {
+                message[i+1]=playerData.name+"："+playerData.point+"点";
+            }
         }
         message[maxSeat+1]="========================";
         for(PlayerData playerData:playerList.values()){
@@ -628,11 +714,19 @@ public class Donjara extends Thread{
     @Override
     public void run() {
         for (int i = 120; i > 0 && playerList.size() < maxSeat; i--) {
-            if (i % 20 == 0) Bukkit.getServer().broadcast(Component.text("§l§w"+masterPlayer.getName() + "§l§aが一点あたり§r§e" + rate + "円§l§aで§e" + maxSeat + "§a人ドンジャラを募集中・・・残り§c" + i + "§a秒  §4必要金額："+getYenString(String.valueOf(rate*24000))), Server.BROADCAST_CHANNEL_USERS);
+            // 鍵付きの部屋は全体に募集を流さない
+            if (i % 20 == 0 && !isPrivate()) Bukkit.getServer().broadcast(Component.text("§l§w"+masterPlayer.getName() + "§l§aが一点あたり§r§e" + rate + "円§l§aで§e" + maxSeat + "§a人ドンジャラを募集中・・・残り§c" + i + "§a秒  §4必要金額："+getYenString(String.valueOf(rate*24000))+" ").append(joinButton()), Server.BROADCAST_CHANNEL_USERS);
             threadSleep(1000);
         }
         if (playerList.size() != maxSeat) {
-            Bukkit.getServer().broadcast(Component.text(masterPlayer.getName() + "の卓は人が集まらなかったので解散しました"), Server.BROADCAST_CHANNEL_USERS);
+            String message = masterPlayer.getName() + "の卓は人が集まらなかったので解散しました";
+            if (isPrivate()) {
+                for (PlayerData playerData : playerList.values()) {
+                    Player player = Bukkit.getPlayer(playerData.playerUUID);
+                    if (player != null) player.sendMessage(message);
+                }
+            }
+            else Bukkit.getServer().broadcast(Component.text(message), Server.BROADCAST_CHANNEL_USERS);
             cancelGame();
             return;
         }
@@ -645,6 +739,12 @@ public class Donjara extends Thread{
             }
             cancelGame();
             return;
+        }
+        if (ratingEnabled()) {
+            // 頭の説明に出す開始時のレート（ゲームスレッドなので DB を待ってよい）
+            for (PlayerData playerData : playerList.values()) {
+                playerData.rating = DonjaraRatingRepository.getRating(playerData.playerUUID);
+            }
         }
         leaderSeat = random.nextInt(maxSeat);
         firstLeader=leaderSeat;
