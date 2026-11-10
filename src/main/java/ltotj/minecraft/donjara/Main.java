@@ -12,8 +12,12 @@ public final class Main extends JavaPlugin {
         GlobalClass.playable=false;
         GlobalClass.mySQLManager=new MySQLManager(this,"ドンジャラ");
         GlobalClass.playable=GlobalClass.config.getBoolean("canPlay");
-        getCommand("donjara").setExecutor(new Commands());
+        Commands commands=new Commands();
+        getCommand("donjara").setExecutor(commands);
+        getCommand("donjara").setTabCompleter(commands);
         new EventList(this);
+        // レート用のテーブル（無ければ作る）。DB 待ちでサーバーを止めないよう別スレッドで
+        GlobalClass.executor.execute(DonjaraRatingRepository::createTable);
 
     }
 
