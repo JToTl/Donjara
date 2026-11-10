@@ -568,12 +568,15 @@ public class Donjara extends Thread{
     }
 
     protected void sendResult(){
-        String[] message=new String[6];
+        String[] message=new String[maxSeat+2];
         message[0]="==========結果==========";
         for(int i=0;i<maxSeat;i++){
             PlayerData playerData=playerList.get(i);
-            if(playerData.name==null)continue;//デバッグ用
-            message[i+1]=playerData.name+"："+playerData.point+"点";
+            if(playerData.name==null){
+                message[i+1]="";
+            } else {
+                message[i+1]=playerData.name+"："+playerData.point+"点";
+            }
         }
         message[maxSeat+1]="========================";
         for(PlayerData playerData:playerList.values()){
