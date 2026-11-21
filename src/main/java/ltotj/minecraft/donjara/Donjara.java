@@ -43,6 +43,8 @@ public class Donjara extends Thread{
     protected List<Integer> ronTiles=new ArrayList<>(),ronPSeat=new ArrayList<>();
     protected boolean canContinue=true;
     public boolean betting=false;
+    // 鍵付きの部屋（/donjara private）のパスワード。null なら通常の卓
+    public String password=null;
     private MySQLManager mysql;
 
     public Donjara(Player player,int maxSeat){
@@ -446,23 +448,27 @@ public class Donjara extends Thread{
         }
     }
 
+    public boolean isPrivate(){
+        return password!=null;
+    }
+
     // 募集中（CPU 戦でなく、まだ席が空いている）か
     public boolean isRecruiting(){
         return !(this instanceof DonjaraCPU)&&playerList.size()<maxSeat;
     }
 
-    // 押すと /donjara join する「クリックで参加」
+    // 押すと /donjara join する「クリックで参加」（鍵付きの卓はパスワード込み）
     public Component joinButton(){
-        String command="/donjara join "+masterPlayer.getName();
+        String command="/donjara join "+masterPlayer.getName()+(password!=null?" "+password:"");
         String fee=betting?"必要金額 "+getYenString(String.valueOf(rate*24000)):"賭けなし";
         return Component.text("§e§l§n[クリックで参加]")
                 .clickEvent(ClickEvent.runCommand(command))
                 .hoverEvent(HoverEvent.showText(Component.text("§eクリックで参加（"+fee+"）")));
     }
 
-    // レートが動くのは、一点あたりの金額が rating.minRate 以上の卓だけ（CPU 戦は endGame ごと別）
+    // レートが動くのは、鍵付きでない卓で一点あたりの金額が rating.minRate 以上のときだけ（CPU 戦は endGame ごと別）
     public boolean ratingEnabled(){
-        return rate>0&&rate>=GlobalClass.config.getConfig().getInt("rating.minRate",5);
+        return !isPrivate()&&rate>0&&rate>=GlobalClass.config.getConfig().getInt("rating.minRate",5);
     }
 
     private DonjaraRating.Settings ratingSettings(){
@@ -724,11 +730,19 @@ public class Donjara extends Thread{
     @Override
     public void run() {
         for (int i = 120; i > 0 && playerList.size() < maxSeat; i--) {
-            if (i % 20 == 0) Bukkit.getServer().broadcast(Component.text("§l§w"+masterPlayer.getName() + "§l§aが一点あたり§r§e" + rate + "円§l§aで§e" + maxSeat + "§a人ドンジャラを募集中・・・残り§c" + i + "§a秒  §4必要金額："+getYenString(String.valueOf(rate*24000))+" ").append(joinButton()), Server.BROADCAST_CHANNEL_USERS);
+            // 鍵付きの部屋は全体に募集を流さない
+            if (i % 20 == 0 && !isPrivate()) Bukkit.getServer().broadcast(Component.text("§l§w"+masterPlayer.getName() + "§l§aが一点あたり§r§e" + rate + "円§l§aで§e" + maxSeat + "§a人ドンジャラを募集中・・・残り§c" + i + "§a秒  §4必要金額："+getYenString(String.valueOf(rate*24000))+" ").append(joinButton()), Server.BROADCAST_CHANNEL_USERS);
             threadSleep(1000);
         }
         if (playerList.size() != maxSeat) {
-            Bukkit.getServer().broadcast(Component.text(masterPlayer.getName() + "の卓は人が集まらなかったので解散しました"), Server.BROADCAST_CHANNEL_USERS);
+            String message = masterPlayer.getName() + "の卓は人が集まらなかったので解散しました";
+            if (isPrivate()) {
+                for (PlayerData playerData : playerList.values()) {
+                    Player player = Bukkit.getPlayer(playerData.playerUUID);
+                    if (player != null) player.sendMessage(message);
+                }
+            }
+            else Bukkit.getServer().broadcast(Component.text(message), Server.BROADCAST_CHANNEL_USERS);
             cancelGame();
             return;
         }

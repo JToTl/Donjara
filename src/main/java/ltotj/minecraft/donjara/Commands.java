@@ -20,7 +20,7 @@ import static java.lang.Math.*;
 
 public class Commands implements CommandExecutor, TabCompleter {
 
-    private static final List<String> PLAYER_SUBCOMMANDS=Arrays.asList("start","join","open","list","rating","top","rule","help","cpu");
+    private static final List<String> PLAYER_SUBCOMMANDS=Arrays.asList("start","private","join","invite","open","list","rating","top","rule","help","cpu");
     private static final List<String> OP_SUBCOMMANDS=Arrays.asList("reload","on","off","pointranking","moneyranking","priceranking");
 
     @Override
@@ -33,21 +33,23 @@ public class Commands implements CommandExecutor, TabCompleter {
         else if(args.length==2){
             switch (args[0]){
                 case "start":
+                case "private":
                     candidates.addAll(Arrays.asList("3","4"));
                     break;
                 case "join":
-                    // 募集中の卓のホストだけ（CPU 戦・満席は出さない）
+                    // 募集中の卓のホストだけ（鍵付き・CPU 戦・満席は出さない）
                     for(Donjara donjara:GlobalClass.DonjaraTable.values()){
-                        if(!donjara.isRecruiting())continue;
+                        if(donjara.isPrivate()||!donjara.isRecruiting())continue;
                         candidates.add(donjara.masterPlayer.getName());
                     }
                     break;
+                case "invite":
                 case "rating":
                     for(Player online:Bukkit.getOnlinePlayers())candidates.add(online.getName());
                     break;
             }
         }
-        else if(args.length==3&&args[0].equals("start")){
+        else if(args.length==3&&(args[0].equals("start")||args[0].equals("private"))){
             candidates.add(String.valueOf((int)GlobalClass.config.getDouble("minRate")));
         }
         String typing=args[args.length-1].toLowerCase();
@@ -195,6 +197,31 @@ public class Commands implements CommandExecutor, TabCompleter {
         });
     }
 
+    // /donjara invite <プレイヤー> — 募集中の自分の卓に誘う（鍵付きの卓はパスワード込みの参加ボタン）
+    private void invite(Player player,String[] args){
+        Donjara table=GlobalClass.DonjaraTable.get(player.getUniqueId());
+        if(table==null||!table.isRecruiting()){
+            player.sendMessage("§c募集中の自分の卓がありません");
+            return;
+        }
+        if(args.length<2){
+            player.sendMessage("/donjara invite <プレイヤー>");
+            return;
+        }
+        Player target=Bukkit.getPlayerExact(args[1]);
+        if(target==null){
+            player.sendMessage("§c"+args[1]+" はオンラインではありません");
+            return;
+        }
+        if(table.seatList.containsKey(target.getUniqueId())){
+            player.sendMessage("§c"+target.getName()+" はすでにこの卓に参加しています");
+            return;
+        }
+        String rate=table.betting?"一点"+table.rate+"円":"賭けなし";
+        target.sendMessage(Component.text("§a"+player.getName()+"§aから"+table.maxSeat+"人ドンジャラ（"+rate+"）に招待されました ").append(table.joinButton()));
+        player.sendMessage("§a"+target.getName()+"§aを招待しました");
+    }
+
     // /donjara top
     private void showTop(Player sender){
         GlobalClass.executor.execute(() -> {
@@ -255,7 +282,19 @@ public class Commands implements CommandExecutor, TabCompleter {
                 return true;
             }
             Player player=(Player)sender;
+            String password=null; // private のときだけ入る（start に流れ込む）
             switch (args[0]){//一般ぴーぽー用
+                case "private":
+                    // /donjara private <人数> <金額> <パスワード> — 募集を流さず、レートも動かない卓。作り方は start と同じ
+                    if(args.length<4){
+                        player.sendMessage("/donjara private <募集人数:3~4> <一点当たりの金額> <パスワード>");
+                        break;
+                    }
+                    else if(args[3].length()>16){
+                        player.sendMessage("パスワードは16文字以内にしてください");
+                        break;
+                    }
+                    password=args[3];
                 case "start":
                     if(args.length<2){
                         player.sendMessage("コマンドが不正です");
@@ -303,6 +342,11 @@ public class Commands implements CommandExecutor, TabCompleter {
                         GlobalClass.DonjaraTable.get(player.getUniqueId()).addPlayer(player);
                     }
                     GlobalClass.currentPlayer.put(player.getUniqueId(),player.getUniqueId());
+                    GlobalClass.DonjaraTable.get(player.getUniqueId()).password=password;
+                    if(password!=null){
+                        player.sendMessage("§a鍵付きのドンジャラ卓を作成しました §7(レート変動なし)");
+                        player.sendMessage("§7募集は全体に流れません。参加する人に伝えてください: §e/donjara join "+player.getName()+" "+password);
+                    }
                     GlobalClass.DonjaraTable.get(player.getUniqueId()).start();
                     break;
                 case "join":
@@ -315,6 +359,10 @@ public class Commands implements CommandExecutor, TabCompleter {
                         // 一度だけ取る（確認と取得の間に卓が終わって消えると落ちるので）
                         Donjara table = masP != null ? GlobalClass.DonjaraTable.get(masP.getUniqueId()) : null;
                         if (table != null) {
+                            if (table.password != null && (args.length < 3 || !args[2].equals(table.password))) {
+                                player.sendMessage("§cパスワードが違います §7(/donjara join " + masP.getName() + " <パスワード>)");
+                                return true;
+                            }
                             if (!table.addPlayer(player)) {
                                 player.sendMessage(Component.text("所持金が不足しているか、人数がいっぱいです"));
                             }
@@ -333,10 +381,13 @@ public class Commands implements CommandExecutor, TabCompleter {
                 case "list":
                     player.sendMessage("立っている卓は以下の通りです");
                     for(Donjara donjara:GlobalClass.DonjaraTable.values()){
-                        if(donjara instanceof DonjaraCPU)continue; // CPU 戦は出さない
+                        if(donjara.isPrivate()||donjara instanceof DonjaraCPU)continue; // 鍵付きの卓・CPU 戦は出さない
                         String fee=donjara.betting?"§4"+getYenString(String.valueOf(donjara.rate*24000)):"§7賭けなし";
                         player.sendMessage(donjara.masterPlayer.getName()+"の卓｜募集人数："+donjara.maxSeat+"人｜必要金額："+fee+"§r｜現在の人数："+donjara.playerList.size()+"人");
                     }
+                    break;
+                case "invite":
+                    invite(player,args);
                     break;
                 case "rating":
                     showRating(player,args.length>1?args[1]:player.getName());
@@ -349,7 +400,9 @@ public class Commands implements CommandExecutor, TabCompleter {
                     break;
                 case "help":
                     player.sendMessage(new String[]{"/donjara start <募集人数:3~4> (一点当たりの金額:"+GlobalClass.config.getDouble("minRate")+"円以上"+GlobalClass.config.getDouble("maxRate")+"円以下,（電子マネー）) |卓を作成します"
-                            ,"/donjara join <募集者のID> |卓に参加します"
+                            ,"/donjara private <募集人数:3~4> <一点当たりの金額> <パスワード> |鍵付きの卓を作成します（募集は流れず、レート変動なし）"
+                            ,"/donjara join <募集者のID> [パスワード] |卓に参加します（鍵付きの卓はパスワードも）"
+                            ,"/donjara invite <プレイヤー> |募集中の自分の卓に招待します"
                             ,"/donjara open |参加中のゲーム画面を開きます"
                             ,"/donjara list |参加可能な卓を表示します"
                             ,"/donjara rating [プレイヤー] |レートを表示します"

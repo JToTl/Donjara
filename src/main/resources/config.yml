@@ -12,7 +12,7 @@ canPlay: true
 
 # レート（/donjara rating・top）。お金の精算には関係なく、レートにだけ順位ウマを付ける
 # 変動 = スコア × scoreMultiplier + (相手の平均レート - 自分のレート) / correctionDivisor
-# スコア = (最後の持ち点 - 24000) / 1000 + ウマ。CPU 戦は対象外
+# スコア = (最後の持ち点 - 24000) / 1000 + ウマ。鍵付きの卓・CPU 戦は対象外
 rating:
   minRate: 5               # 一点あたりこの金額以上の卓だけレートが動く
   initialRating: 2500
