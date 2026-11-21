@@ -1,10 +1,19 @@
 package ltotj.minecraft.donjara.game;
 
-import dev.dbassett.skullcreator.SkullCreator;
 import ltotj.minecraft.donjara.InventoryGUI;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Base64;
+import java.util.UUID;
 
 public class ResultGUI {
 
@@ -60,11 +69,38 @@ public class ResultGUI {
                 str="eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGQ3OTEwZTEwMzM0Zjg5MGE2MjU0ODNhYzBjODI0YjVlNGExYTRiMTVhOTU2MzI3YTNlM2FlNDU4ZDllYTQifX19";
                 break;
         }
-        ItemStack item=SkullCreator.itemFromBase64(str);
+        ItemStack item=createSkullFromBase64(str);
         ItemMeta meta=item.getItemMeta();
         meta.displayName(Component.text("§4点数"));
         item.setItemMeta(meta);
         return item;
+    }
+
+    /**
+     * Base64文字列からプレイヤーヘッドを作成（Paper 1.21+ PlayerProfile API使用）
+     */
+    private ItemStack createSkullFromBase64(String base64) {
+        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) skull.getItemMeta();
+        
+        try {
+            // Base64をデコードしてURLを取得
+            String decoded = new String(Base64.getDecoder().decode(base64));
+            String urlString = decoded.split("\"url\":\"")[1].split("\"")[0];
+            
+            // PlayerProfileを作成してテクスチャを設定
+            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+            PlayerTextures textures = profile.getTextures();
+            textures.setSkin(new URL(urlString));
+            profile.setTextures(textures);
+            
+            meta.setOwnerProfile(profile);
+            skull.setItemMeta(meta);
+        } catch (MalformedURLException | ArrayIndexOutOfBoundsException e) {
+            e.printStackTrace();
+        }
+        
+        return skull;
     }
 
 }

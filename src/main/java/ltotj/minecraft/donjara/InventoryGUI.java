@@ -60,7 +60,7 @@ public class InventoryGUI {
     }
 
     public void removeItem(int slot){
-        inv.setItem(slot,new ItemStack(Material.STONE,0));
+        inv.setItem(slot, null);
     }
 
     private List<Component> listToComponent(String... lore){
@@ -76,7 +76,7 @@ public class InventoryGUI {
     public void enchantItem(int slot){
         ItemStack item=inv.getItem(slot);
         if(item==null)return;
-        item.addUnsafeEnchantment(Enchantment.LUCK,1);
+        item.addUnsafeEnchantment(Enchantment.FORTUNE,1);
         inv.setItem(slot,item);
     }
 

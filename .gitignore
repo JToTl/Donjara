@@ -1,0 +1,21 @@
+## Maven
+/target/
+**/target/
+
+## IDE
+.idea/
+*.iml
+out/
+
+## Gradle
+.gradle/
+build/
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## Misc
+*.log
+local.properties

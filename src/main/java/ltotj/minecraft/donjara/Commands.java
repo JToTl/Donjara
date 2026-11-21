@@ -5,17 +5,55 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.UUID;
 
 import static java.lang.Math.*;
 
-public class Commands implements CommandExecutor {
+public class Commands implements CommandExecutor, TabCompleter {
+
+    private static final List<String> PLAYER_SUBCOMMANDS=Arrays.asList("start","join","open","list","rating","top","rule","help","cpu");
+    private static final List<String> OP_SUBCOMMANDS=Arrays.asList("reload","on","off","pointranking","moneyranking","priceranking");
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> candidates=new ArrayList<>();
+        if(args.length==1){
+            candidates.addAll(PLAYER_SUBCOMMANDS);
+            if(sender.hasPermission("donjara.op"))candidates.addAll(OP_SUBCOMMANDS);
+        }
+        else if(args.length==2){
+            switch (args[0]){
+                case "start":
+                    candidates.addAll(Arrays.asList("3","4"));
+                    break;
+                case "join":
+                    // 募集中の卓のホストだけ（CPU 戦・満席は出さない）
+                    for(Donjara donjara:GlobalClass.DonjaraTable.values()){
+                        if(!donjara.isRecruiting())continue;
+                        candidates.add(donjara.masterPlayer.getName());
+                    }
+                    break;
+                case "rating":
+                    for(Player online:Bukkit.getOnlinePlayers())candidates.add(online.getName());
+                    break;
+            }
+        }
+        else if(args.length==3&&args[0].equals("start")){
+            candidates.add(String.valueOf((int)GlobalClass.config.getDouble("minRate")));
+        }
+        String typing=args[args.length-1].toLowerCase();
+        candidates.removeIf(c->!c.toLowerCase().startsWith(typing));
+        return candidates;
+    }
 
     private String getYenString(String money){//１２桁まで対応
         if(money.length()==0){
@@ -128,6 +166,51 @@ public class Commands implements CommandExecutor {
     }
 
 
+    // /donjara rating [プレイヤー]
+    private void showRating(Player sender,String targetName){
+        if(!targetName.matches("[A-Za-z0-9_.]{1,16}")){
+            sender.sendMessage("§cプレイヤー名が正しくありません");
+            return;
+        }
+        Player online=Bukkit.getPlayerExact(targetName);
+        GlobalClass.executor.execute(() -> {
+            UUID uuid=online!=null?online.getUniqueId():DonjaraRatingRepository.findUuidByName(targetName);
+            DonjaraRatingRepository.Stats stats=uuid!=null?DonjaraRatingRepository.getStats(uuid):null;
+            if(stats==null){
+                sender.sendMessage("§7"+targetName+" はまだレートの付く卓で遊んでいません §8(初期レート "+DonjaraRatingRepository.initialRating()+")");
+                return;
+            }
+            int rank=DonjaraRatingRepository.getServerRank(stats.rating);
+            Long money=DonjaraRatingRepository.getTotalMoney(uuid);
+            List<String> lines=new ArrayList<>();
+            lines.add("§6=== §f"+stats.name+" §6のドンジャラ レーティング ===");
+            lines.add("§eレート: §b§l"+stats.rating+(rank>0?"§7/"+rank+"位":"")); // 順位が取れなかったら出さない
+            lines.add("§e試合数: §f"+stats.games);
+            lines.add("§e順位: §f1位 "+stats.places[0]+"§7/§f2位 "+stats.places[1]+"§7/§f3位 "+stats.places[2]+"§7/§f4位 "+stats.places[3]);
+            if(money!=null){
+                String sign=money>=0?"§a+":"§c-";
+                lines.add("§e収支: "+sign+getYenString(String.valueOf(Math.abs(money))));
+            }
+            sender.sendMessage(lines.toArray(new String[0]));
+        });
+    }
+
+    // /donjara top
+    private void showTop(Player sender){
+        GlobalClass.executor.execute(() -> {
+            List<DonjaraRatingRepository.Stats> top=DonjaraRatingRepository.getTop(10);
+            List<String> lines=new ArrayList<>();
+            lines.add("§6======= §eドンジャラ レートランキング §6=======");
+            if(top.isEmpty())lines.add("§7まだ記録がありません");
+            for(int i=0;i<top.size();i++){
+                DonjaraRatingRepository.Stats s=top.get(i);
+                String medal=i==0?"§6§l🏆":i==1?"§f§l🥈":i==2?"§e§l🥉":"§7"+(i+1)+"位";
+                lines.add(medal+" §f"+s.name+" §7- §b"+s.rating+" §8("+s.games+"戦 "+s.places[0]+"勝)");
+            }
+            sender.sendMessage(lines.toArray(new String[0]));
+        });
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(args.length!=0){
@@ -229,8 +312,10 @@ public class Commands implements CommandExecutor {
                     }
                     else if(args.length>1) {
                         Player masP = Bukkit.getPlayer(args[1]);
-                        if (masP != null && GlobalClass.DonjaraTable.containsKey(masP.getUniqueId())) {
-                            if (!GlobalClass.DonjaraTable.get(masP.getUniqueId()).addPlayer(player)) {
+                        // 一度だけ取る（確認と取得の間に卓が終わって消えると落ちるので）
+                        Donjara table = masP != null ? GlobalClass.DonjaraTable.get(masP.getUniqueId()) : null;
+                        if (table != null) {
+                            if (!table.addPlayer(player)) {
                                 player.sendMessage(Component.text("所持金が不足しているか、人数がいっぱいです"));
                             }
                             return true;
@@ -248,8 +333,16 @@ public class Commands implements CommandExecutor {
                 case "list":
                     player.sendMessage("立っている卓は以下の通りです");
                     for(Donjara donjara:GlobalClass.DonjaraTable.values()){
-                        player.sendMessage(donjara.masterPlayer.getName()+"の卓|募集人数："+donjara.maxSeat+"人｜必要金額：§4"+donjara.rate*24000+"$§｜r現在の人数:"+donjara.playerList.size()+"人");
+                        if(donjara instanceof DonjaraCPU)continue; // CPU 戦は出さない
+                        String fee=donjara.betting?"§4"+getYenString(String.valueOf(donjara.rate*24000)):"§7賭けなし";
+                        player.sendMessage(donjara.masterPlayer.getName()+"の卓｜募集人数："+donjara.maxSeat+"人｜必要金額："+fee+"§r｜現在の人数："+donjara.playerList.size()+"人");
                     }
+                    break;
+                case "rating":
+                    showRating(player,args.length>1?args[1]:player.getName());
+                    break;
+                case "top":
+                    showTop(player);
                     break;
                 case "rule":
                     player.openInventory(GlobalClass.gameRuleGUI.ruleGUI.inv);
@@ -259,6 +352,8 @@ public class Commands implements CommandExecutor {
                             ,"/donjara join <募集者のID> |卓に参加します"
                             ,"/donjara open |参加中のゲーム画面を開きます"
                             ,"/donjara list |参加可能な卓を表示します"
+                            ,"/donjara rating [プレイヤー] |レートを表示します"
+                            ,"/donjara top |レートのランキングを表示します"
                             ,"/donjara rule |牌・役の一覧を表示します"
                             ,"/donjara cpu |試し打ちができます"});
                     break;
